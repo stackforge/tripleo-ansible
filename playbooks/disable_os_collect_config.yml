@@ -1,0 +1,27 @@
+# Copyright (c) 2014 Hewlett-Packard Development Company, L.P.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+# Stop and disable os-collect-config
+#
+# Run from the tripleo-ansible directory:
+#
+- name: "Disable os-collect-config service"
+  sudo: yes
+  service: name=os-collect-config enabled=no state=stopped
+- name: "Reconfigure os-collect-config for local collector"
+  sudo: yes
+  copy:
+    src: files/os-collect-config.conf
+    dest: /etc/os-collect-config.conf

@@ -1,0 +1,38 @@
+# Copyright (c) 2014 Hewlett-Packard Development Company, L.P.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+- name: rebuild using heat facts
+  hosts: localhost
+  tasks:
+  - name: gather facts from heat
+    local_action:
+        module: heat_facts
+        region_name: regionOne
+        login_username: admin
+        login_password: setpassword
+        login_tenant_name: admin
+        auth_url: http://192.0.2.1:5000/v3
+        stacks: all
+  - name: rebuild all instances
+    nova_rebuild:
+      region_name: regionOne
+      login_username: admin
+      login_password: setpassword
+      login_tenant_name: admin
+      auth_url: http://192.0.2.1:5000/v2.0
+      name: "{{ item.key }}"
+      image_id: "{{ item.value.heat_image.id }}"
+      preserve_ephemeral: yes 
+      wait_for: 200
+    with_dict: heat_instances

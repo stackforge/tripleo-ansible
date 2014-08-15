@@ -1,0 +1,4 @@
+overcloud-NovaCompute0-sbepht5ngm5v
+overcloud-NovaCompute1-7d2o5lpz32yt
+overcloud-NovaCompute2-wssjjvfecxwk
+overcloud-controller0-blhq6zj26lhh

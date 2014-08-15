@@ -1,0 +1,346 @@
+#!/usr/bin/python
+
+# (c) 2014 Patrick "CaptTofu" Galbraith <patg@patg.net> 
+# (c) 2014 Clint Byrum <clint@fewbar.com> 
+# (c) 2014 Allison Randal <allison@lohutok.net> 
+# Code also from rax_facts, docker_facts, nova_facts and the primary heat module
+#
+#
+# This file is part of Ansible
+#
+# Ansible is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Ansible is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+
+# This is a DOCUMENTATION stub specific to this module, it extends
+# a documentation fragment located in ansible.utils.module_docs_fragments
+DOCUMENTATION = '''
+---
+module: heat_facts
+short_description: Gather facts for Heat instances and images
+description:
+     - Gather facts for Heat instances and images
+version_added: "0.1"
+options:
+  id:
+    description:
+      - instance ID to retrieve facts for
+    default: null (all instances if neither name nor id specified)
+  name:
+    description:
+      - instance name to retrieve facts for
+    default: null (all instances if neither name nor id specified)
+  address:
+    description
+      - instance address, internal or external (floating) to retrieve
+        facts for
+    default: null
+  group:
+    description
+      - server group to retrieve facts for (filter instances)
+    default: null
+author: Allison Randal
+'''
+
+EXAMPLES = '''
+- name: Gather info about instances
+  hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: Get facts about instance with server id 123
+      local_action:
+        login_username: galt
+        login_password: starnesville
+        login_tenant_name: galt-project1
+        auth_url: https://region-b.geo-1.identity.hpcloudsvc.com:35357/v3/
+        region_name: region-b.geo-1
+        module: heat_facts
+        id: f062f85b-5586-479a-b6a2-647385b04715
+        key_name: test
+        wait_for: 200
+        security_groups: default
+
+    - name: Get facts about instance with ip address of 10.0.0.102
+      local_action:
+        module: heat_facts
+        address: 10.0.0.102
+
+- name: Gather info about all instances and images
+  hosts: heat
+  gather_facts: True
+  tasks:
+    - name: Get facts about instances
+      local_action:
+        module: heat_facts
+        stacks: all
+
+    - name: stacks debug info
+      debug: msg="Stack Name {{ item.key }}"
+      with_dict: heat_stacks
+
+    - name: instances debug info
+      debug: msg="Instance Name {{ item.key }}"
+      with_dict: heat_instances
+
+'''
+from types import NoneType
+
+HAS_KEYSTONE_CLIENT = True
+HAS_HEAT_CLIENT = True
+HAS_NOVA_CLIENT = True
+NON_CALLABLES = (basestring, bool, dict, int, list, NoneType)
+
+try:
+    from heatclient.v1 import client as heat_client
+#    from heatclient import exceptions
+except ImportError:
+    HAS_HEAT_CLIENT = False
+    print("failed=True msg='heatclient is required for this module'")
+
+try:
+    from novaclient.v1_1 import client as nova_client
+except ImportError:
+    HAS_NOVA_CLIENT = False
+    print("failed=True msg='novaclient is required for this module'")
+
+try:
+    from keystoneclient.v3 import client as keystone_client
+except ImportError:
+    HAS_KEYSTONE_CLIENT = False
+    print("failed=True msg='keystoneclient is required for this module'")
+
+
+class HeatFacts:
+
+    def __init__(self, module):
+        self._ksclient = None
+        self._hclient = None
+        self._nclient = None
+        self.module = module
+        self.name = module.params.get('name')
+        self.id = module.params.get('id')
+        self.address = module.params.get('address')
+        self.stacks = module.params.get('stacks')
+        self.group = module.params.get('group')
+
+        self.stack_list = None
+        if self.stacks and self.stacks != 'all':
+            self.stack_list = [ module.params.get('stacks') ]
+
+
+    def key_cleanup(self, value):
+        return 'heat_%s' % (re.sub('[^\w-]', '_', value).lower().lstrip('_'))
+
+    def object_to_dict(self, obj):
+        instance = {}
+        for key in dir(obj):
+            value = getattr(obj, key)
+            if key == 'manager':
+                next
+            if (isinstance(value, NON_CALLABLES) and not key.startswith('_')):
+                key = self.key_cleanup(key)
+                instance[key] = value
+        return instance
+
+    def object_list_to_dict(self, object_list, name):
+        dicts = {}
+        for obj in object_list:
+            dictn = self.object_to_dict(obj)
+            if name is not None and \
+               name != dictn['heat_stack_name']:
+                    next
+            else:
+                dicts[dictn['heat_stack_name']] = dictn
+
+        return dicts
+
+    def get_instances(self):
+        instance_obj_list = []
+        instances_dict = {}
+
+        for stack_name in self.stack_list:
+            stack_obj = self.heat.stacks.get(stack_name)
+            stack_id = stack_obj.id
+            for res in self.heat.resources.list(stack_id):
+                if res.resource_type == 'OS::Nova::Server':
+                    if self.id and self.id != res.physical_resource_id:
+                        break
+
+                    instance = self.object_to_dict(res)
+                    server = self.nova.servers.get(res.physical_resource_id)
+                    if self.name and self.name != server.name:
+                        break
+                    group_match = re.search("compute|controller|undercloud", server.name, flags=re.IGNORECASE)
+                    if group_match:
+                          instance['heat_group'] = group_match.group(0)
+                          if self.group and self.group != instance['heat_group']:
+                              break
+                    instance.update(self.object_to_dict(server))
+                    if self.address and self.address != instance['heat_networks']['ctlplane'][0]:
+                        break
+                    image = self.nova.images.get(instance['heat_image']['id'])
+                    instance['heat_image'].update(image.metadata)
+                    instance['heat_stack_name'] = stack_name
+                    instances_dict[server.name] = instance
+
+        # this is specific to instances, hence not in object_list_to_dict()
+        if self.address is not None:
+            for iname, instance_dict in instances_dict.iteritems():
+                for netname, networks in \
+                        instance_dict['heat_networks'].iteritems():
+                    for address in networks:
+                        if self.address == address:
+                            instances_dict = {iname: instances_dict[iname]}
+
+        return instances_dict
+
+
+    def get_stacks(self):
+        stacks_dict = {}
+        stack_obj_list = []
+        stack_id = None
+        if self.stacks != 'all':
+            stack_id = self.stacks
+            try:
+                stack_obj_list.append(self.heat.stacks.get(stack_id))
+            except Exception, e:
+                self.module.fail_json(msg='%s' % e. message)
+        else:
+            try:
+                stack_obj_list = self.heat.stacks.list()
+            except Exception, e:
+                self.module.fail_json(msg='%s' % e. message)
+
+        stacks_dict = self.object_list_to_dict(stack_obj_list, stack_id)
+        for sname, sdict in stacks_dict.iteritems():
+            if 'heat_parameters' in sdict:
+                del sdict['heat_parameters']
+
+        return stacks_dict
+
+    def heat_facts(self, module):
+        changed = False
+        facts = {}
+
+        # get all stacks
+        facts['heat_stacks'] = self.get_stacks()
+
+        if self.stacks == 'all':
+            self.stack_list = facts['heat_stacks'].keys()
+
+        # get all instances
+        facts['heat_instances'] = self.get_instances()
+
+        module.exit_json(changed=changed, ansible_facts=facts)
+
+    @property
+    def keystone(self):
+        if self._ksclient is None:
+            self._ksclient = keystone_client.Client(
+                    auth_url=self.module.params['auth_url'],
+                    username=self.module.params['login_username'],
+                    password=self.module.params['login_password'])
+            try:
+                self._ksclient.authenticate()
+            except exceptions.Unauthorized, e:
+                module.fail_json(msg="Invalid OpenStack Keystone credentials.: %s" %
+                                 e.message)
+            except exceptions.AuthorizationFailure, e:
+                module.fail_json(msg="Unable to authorize user: %s" % e.message)
+
+        return self._ksclient
+
+    @property
+    def heat(self):
+        if self._hclient is None:
+            ksclient = self.keystone
+            endpoint = ksclient.service_catalog.url_for(
+                    service_type='orchestration', endpoint_type='publicURL')
+            self._hclient = heat_client.Client(
+                    endpoint=endpoint,
+                    token=ksclient.auth_token)
+
+        if self._hclient is None:
+            module.fail_json(msg="Failed to instantiate heat client. This "
+                                 "could mean that your credentials are wrong.")
+        return self._hclient
+
+    @property
+    def nova(self):
+        if self._nclient is None:
+            ksclient = self.keystone
+            endpoint = ksclient.service_catalog.url_for(
+                    service_type='compute', endpoint_type='publicURL')
+            self._nclient = nova_client.Client(
+                    bypass_url=endpoint,
+                    username=None,
+                    api_key=None,
+                    auth_url=self.module.params['auth_url'],
+                    auth_token=ksclient.auth_token)
+
+        if self._nclient is None:
+            module.fail_json(msg="Failed to instantiate nova client. This "
+                                 "could mean that your credentials are wrong.")
+
+        return self._nclient
+
+
+def main():
+    if not HAS_HEAT_CLIENT:
+        module.fail_json(msg=
+                         'The heat python client is required \
+                         for this module')
+    if not HAS_KEYSTONE_CLIENT:
+        module.fail_json(msg=
+                         'The keystone python client is required \
+                         for this module')
+    if not HAS_NOVA_CLIENT:
+        module.fail_json(msg=
+                         'The nova python client is required \
+                         for this module')
+    argument_spec = dict(
+        id=dict(default=None),
+        name=dict(default=None),
+        address=dict(default=None),
+        stacks=dict(default=None),
+        group=dict(default=None),
+        login_username=dict(default='admin'),
+        login_password=dict(required=True),
+        login_tenant_name=dict(required='True'),
+        auth_url=dict(default='http://127.0.0.1:35357/v3/'),
+        region_name=dict(default=None),
+        image_id=dict(default=None),
+        flavor_id=dict(default=1),
+        key_name=dict(default=None),
+        security_groups=dict(default='default'),
+        nics=dict(default=None),
+        meta=dict(default=None),
+        wait=dict(default='yes', choices=['yes', 'no']),
+        wait_for=dict(default=180),
+        state=dict(default='present', choices=['absent', 'present']),
+        user_data=dict(default=None)
+    )
+
+    module = AnsibleModule(
+        argument_spec=argument_spec,
+        mutually_exclusive=[['id', 'name']]
+    )
+
+    manager = HeatFacts(module)
+
+    manager.heat_facts(module)
+
+# import module snippets
+from ansible.module_utils.basic import *
+
+### invoke the module
+main()
