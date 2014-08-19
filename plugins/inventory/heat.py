@@ -29,7 +29,6 @@ options:
 requirements: [ "heatclient" ]
 '''
 
-import argparse
 import json
 import os
 import re
@@ -119,7 +118,7 @@ class HeatInventory(object):
         for stack_obj in self.stacks:
             if stack_obj.status != 'COMPLETE':
                 print("%s stack is incomplete, in state %s" % (
-                    stack,
+                    stack_obj.identifier,
                     stack_obj.status
                 ))
                 sys.exit(1)
@@ -127,7 +126,6 @@ class HeatInventory(object):
             for res in self.hclient.resources.list(stack_id):
                 if res.resource_type == 'OS::Nova::Server':
                     server = self.nclient.servers.get(res.physical_resource_id)
-                    name = server.name
                     private = [
                         x['addr'] for x in getattr(
                             server,
@@ -178,12 +176,11 @@ class HeatInventory(object):
 
     def host(self):
         hostvars = {}
-        groups = {}
 
         for stack_obj in self.stacks:
             if stack_obj.status != 'COMPLETE':
                 print("%s stack is incomplete, in state %s" % (
-                    stack,
+                    stack_obj.identifier,
                     stack_obj.status
                 ))
                 sys.exit(1)
