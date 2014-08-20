@@ -18,8 +18,17 @@
 - name: "Ensure heat local-data directory exists"
   sudo: yes
   file: path=/var/lib/os-collect-config/local-data state=directory
+- name: "Copy deployments exploder script"
+  sudo: yes
+  copy:
+    src: files/explode-deployments.py
+    dest: /usr/local/bin/explode-deployments
+    mode: 0755
 - name: "Write out metadata"
   sudo: yes
   template:
     src: templates/host_metadata.json.j2
     dest: /var/lib/os-collect-config/local-data/host_metadata.json
+- name: "Explode deployments"
+  sudo: yes
+  command: /usr/local/bin/explode-deployments /var/lib/os-collect-config/local-data
