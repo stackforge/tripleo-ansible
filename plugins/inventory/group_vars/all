@@ -35,6 +35,29 @@ overcloud_controller_services:
   - neutron-l3-agent
   - neutron-metadata-agent
   - neutron-dhcp-agent
+overcloudmgmt_controller_services:
+  - apache2
+  - heat-api
+  - heat-api-cfn
+  - heat-api-cloudwatch
+  - heat-engine
+  - glance-api
+  - cinder-api
+  - nova-api
+  - keystone
+  - neutron-server
+  - swift-proxy
+  - glance-reg
+  - cinder-scheduler
+  - nova-scheduler
+  - nova-conductor
+  - nova-novncproxy
+  - neutron-l3-agent
+  - neutron-metadata-agent
+  - neutron-dhcp-agent
+  - ceilometer-collector
+  - ceilometer-agent-central
+  - ceilometer-agent-notification
 overcloud_compute_services:
   - nova-compute
   - neutron-openvswitch-agent
