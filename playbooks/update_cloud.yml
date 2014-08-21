@@ -40,13 +40,13 @@
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ undercloud_rebuild_image_id }}" }
     - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
     - include: refresh_config.yml
-- hosts: nova-compute
-  name: Rebuild and Refresh Nova Compute
+- hosts: undercloud
+  name: Enable Undercloud
+  sudo: yes
   tasks:
-    - include: preserve_ssh_host_keys.yml
-    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ nova_compute_rebuild_image_id }}" }
-    - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
-    - include: refresh_config.yml
+    - include: disable_os_collect_config.yml
+    - service: name={{ item }} enabled=yes state=started
+      with_items: undercloud_services
 - hosts: controller
   name: Rebuild and Refresh Controller
   tasks:
@@ -54,10 +54,8 @@
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controller_rebuild_image_id }}" }
     - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
     - include: refresh_config.yml
-- hosts: all
-  tasks:
-    - include: disable_os_collect_config.yml
 - hosts: controller
+  name: Re-Refresh Controller
   tasks:
     - name: "Work around apache2 starting up at boot w/o config..."
       sudo: yes
@@ -69,20 +67,25 @@
   name: Enable Overcloud Controller
   sudo: yes
   tasks:
-    - service: name={{ item }} enabled=yes state=started
+    - name: Disable os-collect-config on control nodes.
+      include: disable_os_collect_config.yml
+    - name: Enable services
+      service: name={{ item }} enabled=yes state=started
       with_items: overcloud_controller_services
+- hosts: nova-compute
+  name: Rebuild and Refresh Nova Compute
+  tasks:
+    - include: preserve_ssh_host_keys.yml
+    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ nova_compute_rebuild_image_id }}" }
+    - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
+    - include: refresh_config.yml
 - hosts: nova-compute
   name: Enable Overcloud Compute
   sudo: yes
   tasks:
+    - include: disable_os_collect_config.yml
     - name: "Run os-collect-config"
       sudo: yes
       command: os-collect-config --force --one
     - service: name={{ item }} enabled=yes state=started
       with_items: overcloud_compute_services
-- hosts: undercloud
-  name: Enable Undercloud
-  sudo: yes
-  tasks:
-    - service: name={{ item }} enabled=yes state=started
-      with_items: undercloud_services
