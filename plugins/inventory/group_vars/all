@@ -38,6 +38,20 @@ overcloud_controller_services:
 overcloud_compute_services:
   - nova-compute
   - neutron-openvswitch-agent
+overcloud_swift_services:
+  - swift-account
+  - swift-account-auditor
+  - swift-account-reaper
+  - swift-account-replicator
+  - swift-container
+  - swift-container-auditor
+  - swift-container-replicator
+  - swift-container-sync
+  - swift-container-updater
+  - swift-object
+  - swift-object-auditor
+  - swift-object-replicator
+  - swift-object-updater
 undercloud_services:
   - apache2
   - glance-api
