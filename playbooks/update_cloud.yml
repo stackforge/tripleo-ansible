@@ -27,7 +27,7 @@
   tasks:
     - service: name={{ item }} enabled=no state=stopped
       with_items: overcloud_compute_services
-- hosts: nova-compute
+- hosts: swift-storage
   name: swift-storage
   sudo: yes
   tasks:
