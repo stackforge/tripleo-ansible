@@ -35,6 +35,8 @@ overcloud_controller_services:
   - neutron-l3-agent
   - neutron-metadata-agent
   - neutron-dhcp-agent
+  - rabbitmq-server
+  - mysql
 overcloudmgmt_controller_services:
   - apache2
   - heat-api
@@ -58,6 +60,8 @@ overcloudmgmt_controller_services:
   - ceilometer-collector
   - ceilometer-agent-central
   - ceilometer-agent-notification
+  - rabbitmq-server
+  - mysql
 overcloud_compute_services:
   - nova-compute
   - neutron-openvswitch-agent
@@ -94,3 +98,5 @@ undercloud_services:
   - neutron-metadata-agent
   - neutron-dhcp-agent
   - ironic-conductor
+  - rabbitmq-server
+  - mysql
