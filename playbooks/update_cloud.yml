@@ -18,6 +18,7 @@
     - include: disable_os_collect_config.yml
 - hosts: undercloud
   name: Disable Undercloud
+  sudo: yes
   tasks:
     - service: name={{ item }} enabled=no state=stopped
       with_items: undercloud_services
