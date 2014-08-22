@@ -13,12 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- name: "Change /mnt to be a read-only mount-point"
+- name: "Detach any loop devices in use"
   sudo: yes
-  command: mount -o remount,ro /mnt
-- name: "Call nova_rebuild"
-  nova_rebuild:
-    instance_id: "{{ instance_id }}"
-    image_id: "{{ rebuild_image_id }}"
-    preserve_ephemeral: true
-  delegate_to: localhost
+  shell: for loopdevice in `losetup -a| cut -d ':' -f 1`; do losetup --detach $loopdevice; done
+- name: "Remove any cinder volume mounts that may be present"
+  sudo: yes
+  shell: for CINDER_VOLUME in `ls /dev/mapper/|grep 'cinder--volumes'`; do dmsetup remove $CINDER_VOLUME; done

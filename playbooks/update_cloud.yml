@@ -50,6 +50,7 @@
   name: Rebuild and Refresh Undercloud
   tasks:
     - include: preserve_ssh_host_keys.yml
+    - include: cleanup_cinder_volumes.yml
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ undercloud_rebuild_image_id }}" }
     - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
     - include: refresh_config.yml
@@ -64,12 +65,14 @@
   name: Rebuild and Refresh Controller
   tasks:
     - include: preserve_ssh_host_keys.yml
+    - include: cleanup_cinder_volumes.yml
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controller_rebuild_image_id }}" }
     - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
 - hosts: controllermgmt
   name: Rebuild and Refresh ControllerMgmt
   tasks:
     - include: preserve_ssh_host_keys.yml
+    - include: cleanup_cinder_volumes.yml
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controllermgmt_rebuild_image_id }}" }
     - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
 - hosts: controller:controllermgmt
