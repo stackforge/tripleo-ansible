@@ -77,6 +77,8 @@
 - hosts: controller:controllermgmt
   name: Re-Refresh Controller
   tasks:
+    - name: Disable os-collect-config on control nodes.
+      include: disable_os_collect_config.yml
     - name: "Work around apache2 starting up at boot w/o config..."
       sudo: yes
       service: name=apache2 enabled=no state=stopped
@@ -87,8 +89,6 @@
   name: Enable Overcloud ControllerMgmt
   sudo: yes
   tasks:
-    - name: Disable os-collect-config on control nodes.
-      include: disable_os_collect_config.yml
     - name: Enable services
       service: name={{ item }} enabled=yes state=started
       with_items: overcloudmgmt_controller_service
@@ -96,8 +96,6 @@
   name: Enable Overcloud Controller
   sudo: yes
   tasks:
-    - name: Disable os-collect-config on control nodes.
-      include: disable_os_collect_config.yml
     - name: Enable services
       service: name={{ item }} enabled=yes state=started
       with_items: overcloud_controller_services
