@@ -27,25 +27,25 @@
   sudo: yes
   tasks:
     - service: name={{ item }} enabled=no state=stopped
-      with_items: overcloud_compute_services
+      with_items: helion_overcloud_compute_services
 - hosts: swift-storage
   name: swift-storage
   sudo: yes
   tasks:
     - service: name={{ item }} enabled=no state=stopped
-      with_items: overcloud_swift_services
+      with_items: helion_overcloud_swift_services
 - hosts: controller
   name: Disable Overcloud Controller
   sudo: yes
   tasks:
     - service: name={{ item }} enabled=no state=stopped
-      with_items: overcloud_controller_services
+      with_items: helion_overcloud_controller_services
 - hosts: controllermgmt
   name: Disable Overcloud Controller Mgmt node
   sudo: yes
   tasks:
     - service: name={{ item }} enabled=no state=stopped
-      with_items: overcloudmgmt_controller_services
+      with_items: helion_overcloudmgmt_controller_services
 - hosts: undercloud
   name: Rebuild and Refresh Undercloud
   tasks:

@@ -15,6 +15,7 @@
 ---
 wait_for: 200
 key_name: ansible_key
+# This overcloud controller list is for upstream openstack
 overcloud_controller_services:
   - haproxy
   - apache2
@@ -67,19 +68,59 @@ overcloud_controller_services:
   - rsync
   - rabbitmq-server
   - mysql
-overcloudmgmt_controller_services:
+helion_overcloud_controller_services:
   - apache2
+  - beaver
+  - cinder-api
+  - cinder-backup
+  - cinder-scheduler
+  - cinder-volume
+  - haproxy
+  - glance-api
+  - glance-reg
   - heat-api
   - heat-api-cfn
   - heat-api-cloudwatch
   - heat-engine
-  - glance-api
+  - neutron-dhcp-agent
+  - neutron-l3-agent
+  - neutron-metadata-agent
+  - neutron-server
+  - nova-api
+  - nova-cert
+  - nova-conductor
+  - nova-consoleauth
+  - nova-novncproxy
+  - nova-scheduler
+  - tgt
+  - ceilometer-api
+  - snmpd
+  - rsync
+  - rabbitmq-server
+  - mysql
+helion_overcloudmgmt_controller_services:
+  - apache2
+  - beaver
+  - ceilometer-api
+  - ceilometer-collector
+  - ceilometer-agent-central
+  - ceilometer-agent-notification
+  - ceilometer-alarm-evaluator
+  - ceilometer-alarm-notifie
   - cinder-api
+  - cinder-backup
+  - cinder-scheduler
+  - cinder-volume
+  - glance-api
+  - glance-reg
+  - heat-api
+  - heat-api-cfn
+  - heat-api-cloudwatch
+  - heat-engine
   - nova-api
   - keystone
   - neutron-server
   - swift-proxy
-  - glance-reg
   - cinder-scheduler
   - nova-scheduler
   - nova-conductor
@@ -87,17 +128,22 @@ overcloudmgmt_controller_services:
   - neutron-l3-agent
   - neutron-metadata-agent
   - neutron-dhcp-agent
-  - ceilometer-collector
-  - ceilometer-agent-central
-  - ceilometer-agent-notification
-  - snmpd
   - rabbitmq-server
+  - open-iscsi
   - mysql
+# This overcloud compute list is for upstream openstack
 overcloud_compute_services:
   - nova-compute
   - neutron-openvswitch-agent
   - libvirt-bin
   - snmpd
+helion_overcloud_compute_services:
+  - beaver
+  - nova-compute
+  - neutron-openvswitch-agent
+  - libvirt-bin
+  - open-iscsi
+# This overcloud swift list is for upstream openstack
 overcloud_swift_services:
   - swift-account
   - swift-account-auditor
@@ -112,7 +158,24 @@ overcloud_swift_services:
   - swift-object-auditor
   - swift-object-replicator
   - swift-object-updater
+  - swift-proxy
   - snmpd
+helion_overcloud_swift_services:
+  - swift-account
+  - swift-account-auditor
+  - swift-account-reaper
+  - swift-account-replicator
+  - swift-container
+  - swift-container-auditor
+  - swift-container-replicator
+  - swift-container-sync
+  - swift-container-updater
+  - swift-object
+  - swift-object-auditor
+  - swift-object-replicator
+  - swift-object-updater
+  - swift-proxy
+  - open-iscsi
 # This undercloud list is derived from upstream openstack
 undercloud_services:
   - apache2
