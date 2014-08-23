@@ -21,7 +21,7 @@
   sudo: yes
   tasks:
     - service: name={{ item }} enabled=no state=stopped
-      with_items: undercloud_services
+      with_items: helion_undercloud_services
 - hosts: nova-compute
   name: Disable Overcloud Compute
   sudo: yes

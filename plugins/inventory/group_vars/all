@@ -113,6 +113,7 @@ overcloud_swift_services:
   - swift-object-replicator
   - swift-object-updater
   - snmpd
+# This undercloud list is derived from upstream openstack
 undercloud_services:
   - apache2
   - glance-api
@@ -132,6 +133,32 @@ undercloud_services:
   - neutron-metadata-agent
   - neutron-dhcp-agent
   - ironic-conductor
+  - snmpd
+  - rabbitmq-server
+  - mysql
+helion_undercloud_services:
+  - apache2
+  - beaver
+  - glance-api
+  - glance-reg
+  - heat-api
+  - heat-api-cfn
+  - heat-api-cloudwatch
+  - heat-engine
+  - elasticsearch
+  - ironic-api
+  - ironic-conductor
+  - icinga
+  - neutron-server
+  - nova-api
+  - nova-compute
+  - nova-cert
+  - nova-scheduler
+  - nova-conductor
+  - nova-novncproxy
+  - neutron-dhcp-agent
+  - tftpd-hpa
+  - open-iscsi
   - snmpd
   - rabbitmq-server
   - mysql
