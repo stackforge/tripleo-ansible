@@ -13,9 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- name: "Call nova_rebuild"
-  nova_rebuild:
-    instance_id: "{{ instance_id }}"
-    image_id: "{{ rebuild_image_id }}"
-    preserve_ephemeral: true
-  delegate_to: localhost
+- name: "Change /mnt to be a read-only mount-point"
+  sudo: yes
+  command: mount -o remount,ro /mnt

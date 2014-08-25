@@ -14,52 +14,62 @@
 # limitations under the License.
 ---
 - hosts: all
+  gather_facts: no
   tasks:
     - include: disable_os_collect_config.yml
+      when: instance_status == "ACTIVE"
 - hosts: undercloud
   name: Disable Undercloud
   sudo: yes
+  gather_facts: no
   tasks:
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_undercloud_services
-      when: helion is defined
+      when: helion is defined and instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
       with_items: undercloud_services
-      when: helion is not defined
+      when: helion is not defined and instance_status == "ACTIVE"
 - hosts: nova-compute
   name: Disable Overcloud Compute
   sudo: yes
+  gather_facts: no
   tasks:
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_overcloud_compute_services
-      when: helion is defined
+      when: helion is defined and instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
-      with_items: overcloud_compute_services
+      with_items: overcloud_compute_services and instance_status == "ACTIVE"
       when: helion is not defined
 - hosts: swift-storage
   name: swift-storage
   sudo: yes
+  gather_facts: no
   tasks:
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_overcloud_swift_services
-      when: helion is defined
+      when: helion is defined and instance_status == "ACTIVE"
+    - service: name={{ item }} enabled=no state=stopped
+      with_items: overcloud_swift_services
+      when: helion is not defined and instance_status == "ACTIVE"
 - hosts: controller
   name: Disable Overcloud Controller
   sudo: yes
+  gather_facts: no
   tasks:
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_overcloud_controller_services
-      when: helion is defined
+      when: helion is defined and instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
       with_items: overcloud_controller_services
-      when: helion is not defined
+      when: helion is not defined and instance_status == "ACTIVE"
 - hosts: controllermgmt
   name: Disable Overcloud Controller Mgmt node
   sudo: yes
+  gather_facts: no
   tasks:
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_overcloudmgmt_controller_services
-      when: helion is defined
+      when: helion is defined and instance_status == "ACTIVE"
 # Critically, we need to select a single node of the galera cluster to
 # be the 'last'. So controllermgmt fits that bill for now. We will have
 # to select one to be the "special" node eventually, we can do that with
@@ -68,26 +78,36 @@
 - hosts: controller
   name: Stop MySQL on controller nodes
   sudo: yes
+  gather_facts: no
   tasks:
     - include: galera_status.yml
+      when: instance_status == "ACTIVE"
     - service: name=mysql enabled=no state=stopped
-      when: galera_status == 'Synced'
+      when: galera_status == 'Synced' and instance_status == "ACTIVE"
     - fail: msg="Galera Replication is out of sync - cannot safely proceed"
-      when: galera_status != 'Synced'
+      when: galera_status != 'Synced' and instance_status == "ACTIVE"
 - hosts: controllermgmt
   name: Stop MySQL on Overcloud Controller Mgmt node
   sudo: yes
+  gather_facts: no
   tasks:
     - include: galera_status.yml
+      when: instance_status == "ACTIVE"
     - fail: msg="Galera Replication is out of sync - cannot safely proceed"
-      when: galera_status == 'Out of Sync'
+      when: galera_status == 'Out of Sync' and instance_status == "ACTIVE"
     - service: name=mysql enabled=no state=stopped
+      when: instance_status == "ACTIVE"
 - hosts: undercloud
   name: Rebuild and Refresh Undercloud
+  gather_facts: no
   tasks:
     - include: preserve_ssh_host_keys.yml
+      when: instance_status == "ACTIVE"
     - include: cleanup_cinder_volumes.yml
-    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ undercloud_rebuild_image_id }}" }
+      when: instance_status == "ACTIVE"
+    - include: remount-ro.yml
+      when: instance_status == "ACTIVE"
+    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ undercloud_rebuild_image_id }}", when: instance_status != "REBUILD" }
     - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
     - include: refresh_config.yml
 - hosts: undercloud
@@ -99,10 +119,13 @@
       with_items: undercloud_services
 - hosts: controllermgmt
   name: Rebuild and Refresh ControllerMgmt
+  gather_facts: no
   tasks:
     - include: preserve_ssh_host_keys.yml
+      when: instance_status == "ACTIVE"
     - include: cleanup_cinder_volumes.yml
-    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controllermgmt_rebuild_image_id }}" }
+      when: instance_status == "ACTIVE"
+    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controllermgmt_rebuild_image_id }}", when: instance_status != "REBUILD" }
     - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
 - hosts: controllermgmt
   name: Start initial Galera cluster node
@@ -110,10 +133,13 @@
     - service: name=mysql enabled=yes state=started arguments=--wsrep_cluster_address="gcomm://"
 - hosts: controller
   name: Rebuild and Refresh Controller
+  gather_facts: no
   tasks:
     - include: preserve_ssh_host_keys.yml
+      when: instance_status == "ACTIVE"
     - include: cleanup_cinder_volumes.yml
-    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controller_rebuild_image_id }}" }
+      when: instance_status == "ACTIVE"
+    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controller_rebuild_image_id }}", when: instance_status != "REBUILD" }
     - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
 - hosts: controller:controllermgmt
   name: Re-Refresh Controller
@@ -146,9 +172,11 @@
       with_items: overcloud_controller_services
 - hosts: swift-storage
   name: Rebuild and Refresh swift-storage
+  gather_facts: no
   tasks:
     - include: preserve_ssh_host_keys.yml
-    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ swift_storage_rebuild_image_id }}" }
+      when: instance_status == "ACTIVE"
+    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ swift_storage_rebuild_image_id }}", when: instance_status != "REBUILD" }
     - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
     - include: refresh_config.yml
 - hosts: swift-storage
@@ -163,9 +191,11 @@
       with_items: overcloud_swift_services
 - hosts: nova-compute
   name: Rebuild and Refresh Nova Compute
+  gather_facts: no
   tasks:
     - include: preserve_ssh_host_keys.yml
-    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ nova_compute_rebuild_image_id }}" }
+      when: instance_status == "ACTIVE"
+    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ nova_compute_rebuild_image_id }}", when: instance_status != "REBUILD" }
     - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
     - include: refresh_config.yml
 - hosts: nova-compute
