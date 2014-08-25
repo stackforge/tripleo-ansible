@@ -67,7 +67,6 @@ overcloud_controller_services:
   - snmpd
   - rsync
   - rabbitmq-server
-  - mysql
 helion_overcloud_controller_services:
   - apache2
   - beaver
@@ -97,7 +96,6 @@ helion_overcloud_controller_services:
   - snmpd
   - rsync
   - rabbitmq-server
-  - mysql
 helion_overcloudmgmt_controller_services:
   - apache2
   - beaver
@@ -130,7 +128,6 @@ helion_overcloudmgmt_controller_services:
   - neutron-dhcp-agent
   - rabbitmq-server
   - open-iscsi
-  - mysql
 # This overcloud compute list is for upstream openstack
 overcloud_compute_services:
   - nova-compute
@@ -198,7 +195,6 @@ undercloud_services:
   - ironic-conductor
   - snmpd
   - rabbitmq-server
-  - mysql
 helion_undercloud_services:
   - apache2
   - beaver
@@ -224,4 +220,3 @@ helion_undercloud_services:
   - open-iscsi
   - snmpd
   - rabbitmq-server
-  - mysql

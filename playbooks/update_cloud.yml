@@ -46,6 +46,27 @@
   tasks:
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_overcloudmgmt_controller_services
+# Critically, we need to select a single node of the galera cluster to
+# be the 'last'. So controllermgmt fits that bill for now. We will have
+# to select one to be the "special" node eventually, we can do that with
+# host facts and conditionals. The last to go down must have the
+# Galera bootstrap run on it, or none of them will come up.
+- hosts: controller
+  name: Stop MySQL on controller nodes
+  sudo: yes
+  tasks:
+    - include: galera_status.yml
+    - assert:
+      that: galera_status == 'Synced'
+    - service: name=mysql enabled=no state=stopped
+- hosts: controllermgmt
+  name: Stop MySQL on Overcloud Controller Mgmt node
+  sudo: yes
+  tasks:
+    - include: galera_status.yml
+    - assert:
+      that: galera_status == 'Out of Sync'
+    - service: name=mysql enabled=no state=stopped
 - hosts: undercloud
   name: Rebuild and Refresh Undercloud
   tasks:
@@ -61,19 +82,23 @@
     - include: disable_os_collect_config.yml
     - service: name={{ item }} enabled=yes state=started
       with_items: undercloud_services
-- hosts: controller
-  name: Rebuild and Refresh Controller
-  tasks:
-    - include: preserve_ssh_host_keys.yml
-    - include: cleanup_cinder_volumes.yml
-    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controller_rebuild_image_id }}" }
-    - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
 - hosts: controllermgmt
   name: Rebuild and Refresh ControllerMgmt
   tasks:
     - include: preserve_ssh_host_keys.yml
     - include: cleanup_cinder_volumes.yml
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controllermgmt_rebuild_image_id }}" }
+    - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
+- hosts: controllermgmt
+  name: Start initial Galera cluster node
+  tasks:
+    - service: name=mysql enabled=yes state=started arguments=--wsrep_cluster_address="gcomm://"
+- hosts: controller
+  name: Rebuild and Refresh Controller
+  tasks:
+    - include: preserve_ssh_host_keys.yml
+    - include: cleanup_cinder_volumes.yml
+    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controller_rebuild_image_id }}" }
     - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
 - hosts: controller:controllermgmt
   name: Re-Refresh Controller

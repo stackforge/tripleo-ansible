@@ -1,0 +1,8 @@
+- name: Fetch Galera sync status from MySQL
+  sudo: yes # Necessary since root is granted access
+  command: mysql -N -e "SHOW STATUS LIKE 'wsrep_local_state'"
+  register: wsrep_local_state
+- set_fact: galera_status="Synced"
+  when: "{{ wsrep_local_state == 4 }}"
+- set_fact: galera_status="Out of Sync"
+  when: "{{ wsrep_local_state != 4 }}"
