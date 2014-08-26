@@ -70,16 +70,17 @@
   sudo: yes
   tasks:
     - include: galera_status.yml
-    - assert:
-      that: galera_status == 'Synced'
     - service: name=mysql enabled=no state=stopped
+      when: galera_status == 'Synced'
+    - fail: msg="Galera Replication is out of sync - cannot safely proceed"
+      when: galera_status != 'Synced'
 - hosts: controllermgmt
   name: Stop MySQL on Overcloud Controller Mgmt node
   sudo: yes
   tasks:
     - include: galera_status.yml
-    - assert:
-      that: galera_status == 'Out of Sync'
+    - fail: msg="Galera Replication is out of sync - cannot safely proceed"
+      when: galera_status == 'Out of Sync'
     - service: name=mysql enabled=no state=stopped
 - hosts: undercloud
   name: Rebuild and Refresh Undercloud
