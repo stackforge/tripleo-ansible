@@ -38,8 +38,8 @@
       with_items: helion_overcloud_compute_services
       when: helion is defined and instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
-      with_items: overcloud_compute_services and instance_status == "ACTIVE"
-      when: helion is not defined
+      with_items: overcloud_compute_services
+      when: helion is not defined and instance_status == "ACTIVE"
 - hosts: swift-storage
   name: swift-storage
   sudo: yes

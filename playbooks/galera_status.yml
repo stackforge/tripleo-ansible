@@ -3,6 +3,6 @@
   command: mysql -N -e "SHOW STATUS LIKE 'wsrep_local_state'"
   register: wsrep_local_state
 - set_fact: galera_status="Synced"
-  when: wsrep_local_state == "4"
+  when: wsrep_local_state.stdout == "wsrep_local_state\t4"
 - set_fact: galera_status="Out of Sync"
-  when: wsrep_local_state != "4"
+  when: wsrep_local_state.stdout != "wsrep_local_state\t4"
