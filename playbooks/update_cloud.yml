@@ -116,7 +116,11 @@
   tasks:
     - include: disable_os_collect_config.yml
     - service: name={{ item }} enabled=yes state=started
+      with_items: helion_undercloud_services
+      when: helion is defined
+    - service: name={{ item }} enabled=yes state=started
       with_items: undercloud_services
+      when: helion is not defined
 - hosts: controllermgmt
   name: Rebuild and Refresh ControllerMgmt
   gather_facts: no
@@ -160,16 +164,19 @@
   name: Enable Overcloud ControllerMgmt
   sudo: yes
   tasks:
-    - name: Enable services
-      service: name={{ item }} enabled=yes state=started
-      with_items: overcloudmgmt_controller_service
+    - service: name={{ item }} enabled=yes state=started
+      with_items: helion_overcloudmgmt_controller_service
+      when: helion is defined
 - hosts: controller
   name: Enable Overcloud Controller
   sudo: yes
   tasks:
-    - name: Enable services
-      service: name={{ item }} enabled=yes state=started
+    - service: name={{ item }} enabled=yes state=started
+      with_items: helion_overcloud_controller_services
+      when: helion is defined
+    - service: name={{ item }} enabled=yes state=started
       with_items: overcloud_controller_services
+      when: helion is not defined
 - hosts: swift-storage
   name: Rebuild and Refresh swift-storage
   gather_facts: no
@@ -188,7 +195,11 @@
       sudo: yes
       command: os-collect-config --force --one
     - service: name={{ item }} enabled=yes state=started
+      with_items: helion_overcloud_swift_services
+      when: helion is defined
+    - service: name={{ item }} enabled=yes state=started
       with_items: overcloud_swift_services
+      when: helion is not defined
 - hosts: nova-compute
   name: Rebuild and Refresh Nova Compute
   gather_facts: no
@@ -207,4 +218,8 @@
       sudo: yes
       command: os-collect-config --force --one
     - service: name={{ item }} enabled=yes state=started
+      with_items: helion_overcloud_compute_services
+      when: helion is defined
+    - service: name={{ item }} enabled=yes state=started
       with_items: overcloud_compute_services
+      when: helion is not defined
