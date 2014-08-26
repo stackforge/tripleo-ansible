@@ -15,6 +15,7 @@
 ---
 wait_for: 200
 key_name: ansible_key
+helion: True
 # This overcloud controller list is for upstream openstack
 overcloud_controller_services:
   - haproxy
