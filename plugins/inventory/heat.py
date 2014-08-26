@@ -170,6 +170,7 @@ class HeatInventory(object):
                         )
                     }
                     hostvars[addr]['instance_status'] = server.status
+                    hostvars[addr]['instance_image_id'] = server.image['id']
                     hostvars[addr]['instance_id'] = res.physical_resource_id
         inventory = {'_meta': {'hostvars': hostvars}}
         inventory.update(groups)
@@ -197,6 +198,7 @@ class HeatInventory(object):
                             )
                         }
                         hostvars['instance_status'] = server.status
+                        hostvars['instance_image_id'] = server.image['id']
                         hostvars['instance_id'] = res.physical_resource_id
                         print(json.dumps(hostvars, indent=2))
             break
