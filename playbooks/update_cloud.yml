@@ -134,7 +134,8 @@
 - hosts: controllermgmt
   name: Start initial Galera cluster node
   tasks:
-    - service: name=mysql enabled=yes state=started arguments=--wsrep_cluster_address="gcomm://"
+    - command: /etc/init.d/mysql bootstrap-pxc
+    - service: name=mysql enabled=yes state=started
 - hosts: controller
   name: Rebuild and Refresh Controller
   gather_facts: no
