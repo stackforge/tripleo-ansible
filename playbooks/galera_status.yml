@@ -1,3 +1,4 @@
+- service: name=mysql state=started
 - name: Fetch Galera sync status from MySQL
   sudo: yes
   command: mysql -N -e "SHOW STATUS LIKE 'wsrep_local_state'"
