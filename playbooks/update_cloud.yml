@@ -83,9 +83,9 @@
     - include: galera_status.yml
       when: instance_status == "ACTIVE"
     - service: name=mysql enabled=no state=stopped
-      when: galera_status == 'Synced' and instance_status == "ACTIVE"
+      when: instance_status == "ACTIVE" and galera_status == 'Synced'
     - fail: msg="Galera Replication is out of sync - cannot safely proceed"
-      when: galera_status != 'Synced' and instance_status == "ACTIVE"
+      when: instance_status == "ACTIVE" and galera_status != 'Synced'
 - hosts: controllermgmt
   name: Stop MySQL on Overcloud Controller Mgmt node
   sudo: yes
