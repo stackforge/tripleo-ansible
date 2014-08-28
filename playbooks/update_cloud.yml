@@ -24,6 +24,7 @@
   gather_facts: no
   tasks:
     - service_facts:
+      when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_undercloud_services
       when: helion is defined and instance_status == "ACTIVE" and item in existing_services
@@ -36,6 +37,7 @@
   gather_facts: no
   tasks:
     - service_facts:
+      when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_overcloud_compute_services
       when: helion is defined and instance_status == "ACTIVE" and item in existing_services
@@ -48,6 +50,7 @@
   gather_facts: no
   tasks:
     - service_facts:
+      when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_overcloud_swift_services
       when: helion is defined and instance_status == "ACTIVE" and item in existing_services
@@ -72,6 +75,7 @@
   gather_facts: no
   tasks:
     - service_facts:
+      when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_overcloudmgmt_controller_services
       when: helion is defined and instance_status == "ACTIVE" and item in existing_services
@@ -121,6 +125,7 @@
   tasks:
     - include: disable_os_collect_config.yml
     - service_facts:
+      when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_undercloud_services
       when: helion is defined and item in existing_services
@@ -172,6 +177,7 @@
   sudo: yes
   tasks:
     - service_facts:
+      when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_overcloudmgmt_controller_service
       when: helion is defined and item in existing_services
@@ -180,6 +186,7 @@
   sudo: yes
   tasks:
     - service_facts:
+      when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_overcloud_controller_services
       when: helion is defined and item in existing_services
@@ -204,6 +211,7 @@
       sudo: yes
       command: os-collect-config --force --one
     - service_facts:
+      when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_overcloud_swift_services
       when: helion is defined and item in existing_services
@@ -228,6 +236,7 @@
       sudo: yes
       command: os-collect-config --force --one
     - service_facts:
+      when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_overcloud_compute_services
       when: helion is defined and item in existing_services
