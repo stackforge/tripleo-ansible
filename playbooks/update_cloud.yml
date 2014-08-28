@@ -63,6 +63,11 @@
   gather_facts: no
   tasks:
     - service_facts:
+    # Work around bug in init script that causes status to malfunction on tgt
+    # The service will happily start over and over but stopping is tricky
+    - service: name=tgt enabled=no state=started
+      when: instance_status == "ACTIVE" and "tgt" in existing_services
+    - pause: seconds=3
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_overcloud_controller_services
       when: helion is defined and instance_status == "ACTIVE" and item in existing_services
