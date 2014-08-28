@@ -84,13 +84,12 @@ subsituted into place.  Current variables for passing the image variables
 in are nova_compute_rebuild_image_id and controller_rebuild_image_id
 which are passed into the chained playbook.
      
-    ansible-playbook -vvvv -u heat-admin -M library/cloud -i plugins/inventory/heat.py -e nova_compute_rebuild_image_id=1ae9fe6e-c0cc-4f62-8e2b-1d382b20fdcb -e controller_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc -e controllermgmt_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc -e swift_storage_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc playbooks/update_cloud.yml
+    ansible-playbook -vvvv -u heat-admin -i plugins/inventory/heat.py -e nova_compute_rebuild_image_id=1ae9fe6e-c0cc-4f62-8e2b-1d382b20fdcb -e controller_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc -e controllermgmt_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc -e swift_storage_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc playbooks/update_cloud.yml
      
 Below, we break down the above command so you can see what each part does:  
                  
  * -vvvv - Make Ansible very verbose.
  * -u heat-admin - Utilize the heat-admin user to connect to the remote machine.
- * -M library/cloud - Sets the module location so the modules load for the playbooks to execute.
  * -i plugins/inventory/heat.py - Sets the inventory plugin.
  * -e nova_compute_rebuild_image_id=1ae9fe6e-c0cc-4f62-8e2b-1d382b20fdcb - Sets the compute node image ID.
  * -e controller_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc - Sets the controller node image ID.
