@@ -23,53 +23,58 @@
   sudo: yes
   gather_facts: no
   tasks:
+    - service_facts:
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_undercloud_services
-      when: helion is defined and instance_status == "ACTIVE"
+      when: helion is defined and instance_status == "ACTIVE" and item in existing_services
     - service: name={{ item }} enabled=no state=stopped
       with_items: undercloud_services
-      when: helion is not defined and instance_status == "ACTIVE"
+      when: helion is not defined and instance_status == "ACTIVE" and item in existing_services
 - hosts: nova-compute
   name: Disable Overcloud Compute
   sudo: yes
   gather_facts: no
   tasks:
+    - service_facts:
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_overcloud_compute_services
-      when: helion is defined and instance_status == "ACTIVE"
+      when: helion is defined and instance_status == "ACTIVE" and item in existing_services
     - service: name={{ item }} enabled=no state=stopped
       with_items: overcloud_compute_services
-      when: helion is not defined and instance_status == "ACTIVE"
+      when: helion is not defined and instance_status == "ACTIVE" and item in existing_services
 - hosts: swift-storage
   name: swift-storage
   sudo: yes
   gather_facts: no
   tasks:
+    - service_facts:
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_overcloud_swift_services
-      when: helion is defined and instance_status == "ACTIVE"
+      when: helion is defined and instance_status == "ACTIVE" and item in existing_services
     - service: name={{ item }} enabled=no state=stopped
       with_items: overcloud_swift_services
-      when: helion is not defined and instance_status == "ACTIVE"
+      when: helion is not defined and instance_status == "ACTIVE" and item in existing_services
 - hosts: controller
   name: Disable Overcloud Controller
   sudo: yes
   gather_facts: no
   tasks:
+    - service_facts:
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_overcloud_controller_services
-      when: helion is defined and instance_status == "ACTIVE"
+      when: helion is defined and instance_status == "ACTIVE" and item in existing_services
     - service: name={{ item }} enabled=no state=stopped
       with_items: overcloud_controller_services
-      when: helion is not defined and instance_status == "ACTIVE"
+      when: helion is not defined and instance_status == "ACTIVE" and item in existing_services
 - hosts: controllermgmt
   name: Disable Overcloud Controller Mgmt node
   sudo: yes
   gather_facts: no
   tasks:
+    - service_facts:
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_overcloudmgmt_controller_services
-      when: helion is defined and instance_status == "ACTIVE"
+      when: helion is defined and instance_status == "ACTIVE" and item in existing_services
 # Critically, we need to select a single node of the galera cluster to
 # be the 'last'. So controllermgmt fits that bill for now. We will have
 # to select one to be the "special" node eventually, we can do that with
@@ -115,12 +120,13 @@
   sudo: yes
   tasks:
     - include: disable_os_collect_config.yml
+    - service_facts:
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_undercloud_services
-      when: helion is defined
+      when: helion is defined and item in existing_services
     - service: name={{ item }} enabled=yes state=started
       with_items: undercloud_services
-      when: helion is not defined
+      when: helion is not defined and item in existing_services
 - hosts: controllermgmt
   name: Rebuild and Refresh ControllerMgmt
   gather_facts: no
@@ -165,19 +171,21 @@
   name: Enable Overcloud ControllerMgmt
   sudo: yes
   tasks:
+    - service_facts:
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_overcloudmgmt_controller_service
-      when: helion is defined
+      when: helion is defined and item in existing_services
 - hosts: controller
   name: Enable Overcloud Controller
   sudo: yes
   tasks:
+    - service_facts:
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_overcloud_controller_services
-      when: helion is defined
+      when: helion is defined and item in existing_services
     - service: name={{ item }} enabled=yes state=started
       with_items: overcloud_controller_services
-      when: helion is not defined
+      when: helion is not defined and item in existing_servies
 - hosts: swift-storage
   name: Rebuild and Refresh swift-storage
   gather_facts: no
@@ -195,12 +203,13 @@
     - name: "Run os-collect-config"
       sudo: yes
       command: os-collect-config --force --one
+    - service_facts:
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_overcloud_swift_services
-      when: helion is defined
+      when: helion is defined and item in existing_services
     - service: name={{ item }} enabled=yes state=started
       with_items: overcloud_swift_services
-      when: helion is not defined
+      when: helion is not defined and item in existing_servies
 - hosts: nova-compute
   name: Rebuild and Refresh Nova Compute
   gather_facts: no
@@ -218,9 +227,10 @@
     - name: "Run os-collect-config"
       sudo: yes
       command: os-collect-config --force --one
+    - service_facts:
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_overcloud_compute_services
-      when: helion is defined
+      when: helion is defined and item in existing_services
     - service: name={{ item }} enabled=yes state=started
       with_items: overcloud_compute_services
-      when: helion is not defined
+      when: helion is not defined and item in existing_services
