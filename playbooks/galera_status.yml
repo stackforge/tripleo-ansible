@@ -1,7 +1,7 @@
 - service: name=mysql state=started
 - name: Fetch Galera sync status from MySQL
   sudo: yes
-  command: mysql -N -e "SHOW STATUS LIKE 'wsrep_local_state'"
+  command: mysql --defaults-file=/mnt/state/root/metadata.my.cnf -N -e "SHOW STATUS LIKE 'wsrep_local_state'"
   register: wsrep_local_state
 - set_fact: galera_status="Synced"
   when: wsrep_local_state.stdout == "wsrep_local_state\t4"
