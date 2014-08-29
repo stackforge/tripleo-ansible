@@ -131,7 +131,7 @@
     - include: remount-ro.yml
       when: instance_status == "ACTIVE"
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ undercloud_rebuild_image_id }}", when: instance_status != "REBUILD" }
-    - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
+    - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=TRIPLEO_HK_RESTORED delay=10
     - include: refresh_config.yml
 - hosts: undercloud
   name: Enable Undercloud
@@ -157,7 +157,7 @@
     - include: cleanup_cinder_volumes.yml
       when: instance_status == "ACTIVE"
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controllermgmt_rebuild_image_id }}", when: instance_status != "REBUILD" }
-    - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
+    - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=TRIPLEO_HK_RESTORED delay=10
 - hosts: controllermgmt
   name: Start initial Galera cluster node
   max_fail_percentage: 0
@@ -174,7 +174,7 @@
     - include: cleanup_cinder_volumes.yml
       when: instance_status == "ACTIVE"
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controller_rebuild_image_id }}", when: instance_status != "REBUILD" }
-    - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
+    - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=TRIPLEO_HK_RESTORED delay=10
 - hosts: controller:controllermgmt
   name: Re-Refresh Controller
   max_fail_percentage: 0
@@ -223,7 +223,7 @@
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ swift_storage_rebuild_image_id }}", when: instance_status != "REBUILD" }
-    - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
+    - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=TRIPLEO_HK_RESTORED delay=10
     - include: refresh_config.yml
 - hosts: swift-storage
   name: Enable Swift Storage
@@ -250,7 +250,7 @@
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ nova_compute_rebuild_image_id }}", when: instance_status != "REBUILD" }
-    - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
+    - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=TRIPLEO_HK_RESTORED delay=10
     - include: refresh_config.yml
 - hosts: nova-compute
   name: Enable Overcloud Compute
