@@ -15,6 +15,7 @@
 ---
 - hosts: all
   gather_facts: no
+  max_fail_percentage: 0
   tasks:
     - include: disable_os_collect_config.yml
       when: instance_status == "ACTIVE"
@@ -22,6 +23,7 @@
   name: Disable Undercloud
   sudo: yes
   gather_facts: no
+  max_fail_percentage: 0
   tasks:
     - service_facts:
       when: instance_status == "ACTIVE"
@@ -35,6 +37,7 @@
   name: Disable Overcloud Compute
   sudo: yes
   gather_facts: no
+  max_fail_percentage: 0
   tasks:
     - service_facts:
       when: instance_status == "ACTIVE"
@@ -48,6 +51,7 @@
   name: swift-storage
   sudo: yes
   gather_facts: no
+  max_fail_percentage: 0
   tasks:
     - service_facts:
       when: instance_status == "ACTIVE"
@@ -61,6 +65,7 @@
   name: Disable Overcloud Controller
   sudo: yes
   gather_facts: no
+  max_fail_percentage: 0
   tasks:
     - service_facts:
     # Work around bug in init script that causes status to malfunction on tgt
@@ -78,6 +83,7 @@
   name: Disable Overcloud Controller Mgmt node
   sudo: yes
   gather_facts: no
+  max_fail_percentage: 0
   tasks:
     - service_facts:
       when: instance_status == "ACTIVE"
@@ -93,6 +99,7 @@
   name: Stop MySQL on controller nodes
   sudo: yes
   gather_facts: no
+  max_fail_percentage: 0
   tasks:
     - include: galera_status.yml
       when: instance_status == "ACTIVE"
@@ -104,6 +111,7 @@
   name: Stop MySQL on Overcloud Controller Mgmt node
   sudo: yes
   gather_facts: no
+  max_fail_percentage: 0
   tasks:
     - include: galera_status.yml
       when: instance_status == "ACTIVE"
@@ -114,6 +122,7 @@
 - hosts: undercloud
   name: Rebuild and Refresh Undercloud
   gather_facts: no
+  max_fail_percentage: 0
   tasks:
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
@@ -127,6 +136,7 @@
 - hosts: undercloud
   name: Enable Undercloud
   sudo: yes
+  max_fail_percentage: 0
   tasks:
     - include: disable_os_collect_config.yml
     - service_facts:
@@ -140,6 +150,7 @@
 - hosts: controllermgmt
   name: Rebuild and Refresh ControllerMgmt
   gather_facts: no
+  max_fail_percentage: 0
   tasks:
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
@@ -149,12 +160,14 @@
     - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
 - hosts: controllermgmt
   name: Start initial Galera cluster node
+  max_fail_percentage: 0
   tasks:
     - command: /etc/init.d/mysql bootstrap-pxc
     - service: name=mysql enabled=yes state=started
 - hosts: controller
   name: Rebuild and Refresh Controller
   gather_facts: no
+  max_fail_percentage: 0
   tasks:
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
@@ -164,6 +177,7 @@
     - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
 - hosts: controller:controllermgmt
   name: Re-Refresh Controller
+  max_fail_percentage: 0
   tasks:
     - include: refresh_config.yml
     - name: Disable os-collect-config on control nodes.
@@ -180,6 +194,7 @@
 - hosts: controllermgmt
   name: Enable Overcloud ControllerMgmt
   sudo: yes
+  max_fail_percentage: 0
   tasks:
     - service_facts:
       when: instance_status == "ACTIVE"
@@ -189,6 +204,7 @@
 - hosts: controller
   name: Enable Overcloud Controller
   sudo: yes
+  max_fail_percentage: 0
   tasks:
     - service_facts:
       when: instance_status == "ACTIVE"
@@ -201,6 +217,7 @@
 - hosts: swift-storage
   name: Rebuild and Refresh swift-storage
   gather_facts: no
+  max_fail_percentage: 0
   tasks:
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
@@ -210,6 +227,7 @@
 - hosts: swift-storage
   name: Enable Swift Storage
   sudo: yes
+  max_fail_percentage: 0
   tasks:
     - include: disable_os_collect_config.yml
     - name: "Run os-collect-config"
@@ -226,6 +244,7 @@
 - hosts: nova-compute
   name: Rebuild and Refresh Nova Compute
   gather_facts: no
+  max_fail_percentage: 0
   tasks:
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
@@ -235,6 +254,7 @@
 - hosts: nova-compute
   name: Enable Overcloud Compute
   sudo: yes
+  max_fail_percentage: 0
   tasks:
     - include: disable_os_collect_config.yml
     - name: "Run os-collect-config"

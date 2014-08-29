@@ -115,3 +115,21 @@ defect is being fixed, you will want to set an environment variable of
     ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -vvvv -M library/cloud -i plugins/inventory/heat.py -e controller_rebuild_image_id=4bee1a0a-2670-48e4-a3a4-17da6be795cb -e nova_compute_rebuild_image_id=bd20e098-0753-4dc8-8dba-2f739c01ee65 -u heat-admin playbooks/update_cloud.yml
 
 For more information about Ansible, please refer to the documentation at http://docs.ansible.com/
+
+Failure Handling
+----------------
+
+Ansible has tunable options to abort the execution of a playbook upon
+encountering a failure.
+
+The max_fail_percentage parameter allows users to define what percentage of
+nodes can fail before the playbook stops executing. This setting is pre-defined
+in the playbook file playbooks/update_cloud.yml. The default value is zero,
+which causes the playbook to abort execution if any node fails. You can read
+about this option at:
+http://docs.ansible.com/playbooks_delegation.html#maximum-failure-percentage
+
+Additionally, it should be noted that the any_errors_fatal variable, when
+set to a value of True, will result in ansible aborting upon encountering
+any failures.  This variable can be set by adding '-e any_errors_fatal=True'
+to the command line.
