@@ -25,4 +25,8 @@ This is a simplified set of instructions specifically for updating Helion.
    source /opt/stack/venvs/ansible/bin/activate
    cd /opt/stack/tripleo-ansible
 
+ * Ensure the Nova meta group is set properly on all servers::
+
+   bash scripts/inject_nova_meta.bash
+
  * From here please refer to README.rst "Running the updates"
