@@ -25,3 +25,6 @@
   copy:
     src: files/os-collect-config.conf
     dest: /etc/os-collect-config.conf
+- name: "Install os-collect-config disable sentinel file"
+  sudo: yes
+  file: path=/mnt/state/disable-os-collect-config owner=root group=root mode=644 state=touch

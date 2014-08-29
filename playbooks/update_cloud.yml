@@ -180,11 +180,12 @@
   max_fail_percentage: 0
   tasks:
     - include: refresh_config.yml
-    - name: Disable os-collect-config on control nodes.
-      include: disable_os_collect_config.yml
     - name: "Work around apache2 starting up at boot w/o config..."
       sudo: yes
       service: name=apache2 enabled=no state=stopped
+    - name: "Remove os-collect-config diable sentinel file"
+      sudo: yes
+      file: path=/mnt/state/disable-os-collect-config state=absent
     - name: "Run os-collect-config"
       sudo: yes
       command: os-collect-config --force --one
