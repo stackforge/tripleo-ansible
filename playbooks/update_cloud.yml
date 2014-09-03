@@ -13,12 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- hosts: all
-  gather_facts: no
-  max_fail_percentage: 0
-  tasks:
-    - include: disable_os_collect_config.yml
-      when: instance_status == "ACTIVE"
 - hosts: undercloud
   name: Disable Undercloud
   sudo: yes
@@ -118,6 +112,12 @@
     - fail: msg="Galera Replication is out of sync - cannot safely proceed"
       when: galera_status == 'Out of Sync' and instance_status == "ACTIVE"
     - service: name=mysql enabled=no state=stopped
+      when: instance_status == "ACTIVE"
+- hosts: all
+  gather_facts: no
+  max_fail_percentage: 0
+  tasks:
+    - include: disable_os_collect_config.yml
       when: instance_status == "ACTIVE"
 - hosts: undercloud
   name: Rebuild and Refresh Undercloud
