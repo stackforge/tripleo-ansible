@@ -1,12 +1,39 @@
 This is a simplified set of instructions specifically for updating Helion.
 
- * If you do not have a tripleo-ansible tarball, build one by pulling this
-   patch into tripleo-image-elements:
-   https://review.hpcloud.net/38796
+ * IMAGE BUILD (you can skip this if you have a tarball):
 
-   And running this, ensuring that t-i-e is in ELEMENT_PATH.
+   * set TRIPLEO_ROOT to wherever you have tripleo-image-elements, hp-image-elements, and diskimage-builder
+     checked out to::
 
-   disk-image-create -u -a amd64 hlinux tripleo-ansible-tarball
+     export TRIPLEO_ROOT=~/build_update
+   
+   * pull this patch into tripleo-image-elements:
+
+     https://review.hpcloud.net/38796
+
+   * pull this patch into hp-image-elements:
+
+     https://review.hpcloud.net/39168
+
+   * pull this patch into diskimage-builder:
+
+     https://review.openstack.org/118689
+
+   * Set path to seed::
+
+     export DIB_ROOT_IMAGE=path/to/seed.qcow2
+
+   * Set ELEMENTS_PATH::
+
+     export ELEMENTS_PATH=$TRIPLEO_ROOT/diskimage-builder/elements:$TRIPLEO_ROOT/tripleo-image-elements/elements:$TRIPLEO_ROOT/hp-image-elements/elements
+
+   * Use disk-image-create to create a tarball::
+
+     disk-image-create -un -a amd64 image hp-hlinux-apt-repo tripleo-ansible-tarball
+
+   * The tarball should be named 'tripleo-ansible-$hash-$platform-$arch.tar.gz' For example::
+
+     tripleo-ansible-588a134-Debian-GNULinux-cattleprod-amd64.tar.gz
 
  * Copy the tarball to the seed, and untar it in /opt/stack::
 
