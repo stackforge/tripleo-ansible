@@ -37,7 +37,7 @@ This is a simplified set of instructions specifically for updating Helion.
 
  * Copy the tarball to the seed, and untar it in /opt/stack::
 
-   tar -C /opt/stack -cxvf tripleo-ansible-*.tar.gz
+   tar -C /opt/stack -xvf tripleo-ansible-*.tar.gz
 
  * ssh to the seed as root
 
