@@ -15,9 +15,10 @@ This is a simplified set of instructions specifically for updating Helion.
 
      https://review.hpcloud.net/39168
 
-   * pull this patch into diskimage-builder:
+   * pull these patches into diskimage-builder:
 
      https://review.openstack.org/118689
+     https://review.openstack.org/118943
 
    * Set path to seed::
 
