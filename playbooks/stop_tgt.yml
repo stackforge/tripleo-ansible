@@ -1,0 +1,8 @@
+# Work around bug in init script that causes status to malfunction on tgt
+# The service will happily start over and over but stopping is tricky
+- name: Stop TGT
+  sudo: yes
+  service: name=tgt state=stopped enabled=no
+  ignore_errors: yes
+- name: Wait for TGT to be down
+  wait_for: port=3260 state=stopped timeout=300

@@ -35,7 +35,6 @@ overcloud_controller_services:
   - glance-reg
   - cinder-scheduler
   - cinder-volume
-  - tgt
   - nova-scheduler
   - nova-conductor
   - nova-novncproxy
@@ -92,7 +91,6 @@ helion_overcloud_controller_services:
   - nova-consoleauth
   - nova-novncproxy
   - nova-scheduler
-  - tgt
   - ceilometer-api
   - snmpd
   - rsync
