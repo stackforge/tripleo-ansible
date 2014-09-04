@@ -1,0 +1,8 @@
+- name: Collect list of VMs
+  sudo: yes
+  virt: command=list_vms
+  register: virtual_machines
+- name: Issue graceful shutdowns
+  sudo: yes
+  virt: state=shutdown name={{item}}
+  with_items: virtual_machines.list_vms
