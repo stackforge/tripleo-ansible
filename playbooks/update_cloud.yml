@@ -169,6 +169,7 @@
 - hosts: controllermgmt
   name: Start initial Galera cluster node
   max_fail_percentage: 0
+  sudo: yes
   tasks:
     - command: /etc/init.d/mysql bootstrap-pxc
     - service: name=mysql enabled=yes state=started
