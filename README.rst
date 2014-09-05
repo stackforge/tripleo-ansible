@@ -133,3 +133,17 @@ Additionally, it should be noted that the any_errors_fatal variable, when
 set to a value of True, will result in ansible aborting upon encountering
 any failures.  This variable can be set by adding '-e any_errors_fatal=True'
 to the command line.
+
+Additional Options
+------------------
+
+The plugins/inventory/group_vars/all file has the following options in order
+to tune behavior of the playbook execution.  These options can be enabled by
+defining the variable name that they represent on the ansible comamnd line, or
+by uncommenting the appropriate line in the plugins/inventory/group-vars/all
+file.
+
+ * force_rebuild - This option overrides the logic that prevents an instance
+   from being rebuilt if the pre-existing image id maches the id being deployed.
+   This may be useful for the purposes of testing.
+   Example command line addition: -e force_rebuild=True

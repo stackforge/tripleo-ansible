@@ -13,9 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- name: "Call nova_rebuild"
+- name: "Call nova_rebuild if instance needs to be updated"
   nova_rebuild:
     instance_id: "{{ instance_id }}"
     image_id: "{{ rebuild_image_id }}"
     preserve_ephemeral: true
   delegate_to: localhost
+  when: instance_image_id != rebuild_image_id and force_rebuild is not defined
+- name: "Call nova_rebuild if rebuild is mandated"
+  nova_rebuild:
+    instance_id: "{{ instance_id }}"
+    image_id: "{{ rebuild_image_id }}"
+    preserve_ephemeral: true
+  delegate_to: localhost
+  when: force_rebuild is defined
