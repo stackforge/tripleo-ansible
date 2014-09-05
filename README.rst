@@ -147,3 +147,6 @@ file.
    from being rebuilt if the pre-existing image id maches the id being deployed.
    This may be useful for the purposes of testing.
    Example command line addition: -e force_rebuild=True
+ * wait_for_hostkey - This option causes the playbook to wait for the SSH host
+   keys to be restored.  This options should only be used if the restore-ssh-host-keys
+   element is built into the new image.
