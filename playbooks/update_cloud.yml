@@ -75,7 +75,7 @@
     - service: name={{ item }} enabled=no state=stopped
       with_items: overcloud_controller_services
       when: helion is not defined and instance_status == "ACTIVE" and item in existing_services
-- hosts: controllermgmt
+- hosts: controllerMgmt
   name: Disable Overcloud Controller Mgmt node
   sudo: yes
   gather_facts: no
@@ -87,7 +87,7 @@
       with_items: helion_overcloudmgmt_controller_services
       when: helion is defined and instance_status == "ACTIVE" and item in existing_services
 # Critically, we need to select a single node of the galera cluster to
-# be the 'last'. So controllermgmt fits that bill for now. We will have
+# be the 'last'. So controllerMgmt fits that bill for now. We will have
 # to select one to be the "special" node eventually, we can do that with
 # host facts and conditionals. The last to go down must have the
 # Galera bootstrap run on it, or none of them will come up.
@@ -103,7 +103,7 @@
       when: instance_status == "ACTIVE" and galera_status == 'Synced'
     - fail: msg="Galera Replication is out of sync - cannot safely proceed"
       when: instance_status == "ACTIVE" and galera_status != 'Synced'
-- hosts: controllermgmt
+- hosts: controllerMgmt
   name: Stop MySQL on Overcloud Controller Mgmt node
   sudo: yes
   gather_facts: no
@@ -152,7 +152,7 @@
     - service: name={{ item }} enabled=yes state=started
       with_items: undercloud_services
       when: helion is not defined and item in existing_services
-- hosts: controllermgmt
+- hosts: controllerMgmt
   name: Rebuild and Refresh ControllerMgmt
   gather_facts: no
   max_fail_percentage: 0
@@ -166,7 +166,7 @@
       when: wait_for_hostkey is defined
     - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
       when: wait_for_hostkey is not defined
-- hosts: controllermgmt
+- hosts: controllerMgmt
   name: Start initial Galera cluster node
   max_fail_percentage: 0
   sudo: yes
@@ -187,7 +187,7 @@
       when: wait_for_hostkey is defined
     - local_action: wait_for port=22 timeout=600 host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
       when: wait_for_hostkey is not defined
-- hosts: controller:controllermgmt
+- hosts: controller:controllerMgmt
   name: Re-Refresh Controller
   max_fail_percentage: 0
   tasks:
@@ -204,7 +204,7 @@
     - name: Re-run os-collect-config in case first one failed due to a race condition
       sudo: yes
       command: os-collect-config --noforce --one
-- hosts: controllermgmt
+- hosts: controllerMgmt
   name: Enable Overcloud ControllerMgmt
   sudo: yes
   max_fail_percentage: 0
