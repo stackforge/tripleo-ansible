@@ -223,7 +223,7 @@
       when: helion is defined and item in existing_services
     - service: name={{ item }} enabled=yes state=started
       with_items: overcloud_controller_services
-      when: helion is not defined and item in existing_servies
+      when: helion is not defined and item in existing_services
 - hosts: swift-storage
   name: Rebuild and Refresh swift-storage
   gather_facts: no
@@ -253,7 +253,7 @@
       when: helion is defined and item in existing_services
     - service: name={{ item }} enabled=yes state=started
       with_items: overcloud_swift_services
-      when: helion is not defined and item in existing_servies
+      when: helion is not defined and item in existing_services
 - hosts: nova-compute
   name: Rebuild and Refresh Nova Compute
   gather_facts: no
