@@ -107,8 +107,8 @@
   tasks:
     - include: galera_status.yml
       when: instance_status == "ACTIVE"
-    - fail: msg="Galera Replication is out of sync - cannot safely proceed"
-      when: galera_status == 'Out of Sync' and instance_status == "ACTIVE"
+    - fail: msg="Galera Replication on controller Management is still synced. Cannot proceed."
+      when: instance_status == "ACTIVE" and galera_status != 'Out of Sync'
     - service: name=mysql enabled=no state=stopped
       when: instance_status == "ACTIVE"
 - hosts: all
