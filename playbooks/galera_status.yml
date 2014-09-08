@@ -5,15 +5,15 @@
   when: helion is not defined
   register: wsrep_local_state
 - set_fact: galera_status="Synced"
-  when: wsrep_local_state.stdout == "wsrep_local_state\t4" and helion is not defined
+  when: helion is not defined and wsrep_local_state.stdout == "wsrep_local_state\t4"
 - set_fact: galera_status="Out of Sync"
-  when: wsrep_local_state.stdout != "wsrep_local_state\t4" and helion is not defined
+  when: helion is not defined and wsrep_local_state.stdout != "wsrep_local_state\t4"
 - name: Fetch Galera sync status from MySQL - Helion
   sudo: yes
   command: mysql --defaults-file=/mnt/state/root/metadata.my.cnf -N -e "SHOW STATUS LIKE 'wsrep_local_state'"
   when: helion is defined
   register: wsrep_local_state
 - set_fact: galera_status="Synced"
-  when: wsrep_local_state.stdout == "wsrep_local_state\t4" and helion is defined
+  when: helion is defined and wsrep_local_state.stdout == "wsrep_local_state\t4"
 - set_fact: galera_status="Out of Sync"
-  when: wsrep_local_state.stdout != "wsrep_local_state\t4" and helion is defined
+  when: helion is defined and wsrep_local_state.stdout != "wsrep_local_state\t4"
