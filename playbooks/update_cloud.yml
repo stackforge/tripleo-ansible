@@ -99,6 +99,8 @@
       when: instance_status == "ACTIVE" and galera_status == 'Synced'
     - fail: msg="Galera Replication is out of sync - cannot safely proceed"
       when: instance_status == "ACTIVE" and galera_status != 'Synced'
+    - wait_for: port=3307 state=stopped timeout=300 delay=10
+      when: helion is present and instance_status == "ACTIVE" and galera_status == 'Synced'
 - hosts: controllerMgmt
   name: Stop MySQL on Overcloud Controller Mgmt node
   sudo: yes
