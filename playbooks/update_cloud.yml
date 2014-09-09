@@ -97,13 +97,13 @@
     - include: galera_status.yml
       when: instance_status == "ACTIVE"
     - service: name=mysql enabled=no state=stopped
-      when: instance_status == "ACTIVE" and galera_status == 'Synced'
+      when: instance_status == "ACTIVE" and galera_status == "Synced"
     - fail: msg="Galera Replication is out of sync - cannot safely proceed"
-      when: instance_status == "ACTIVE" and galera_status != 'Synced' and single_controller is not present
+      when: single_controller is not defined and instance_status == "ACTIVE" and galera_status == "Out of Sync"
     - fail: msg="Galera Replication is out of sync - Node appears to be the last node in a cluster - cannot safely proceed"
-      when: instance_status == "ACTIVE" and galera_status != 'Synced' and single_controller is present
+      when: single_controller is defined and instance_status == "ACTIVE" and galera_status == "Out of Sync"
     - wait_for: port=3307 state=stopped timeout=60 delay=10
-      when: instance_status == "ACTIVE" and helion is present and single_controller is not present and galera_status == 'Synced'
+      when: instance_status == "ACTIVE" and helion is defined and single_controller is not defined and galera_status == 'Synced'
 - hosts: controllerMgmt
   name: Stop MySQL on Overcloud Controller Mgmt node
   sudo: yes
@@ -113,7 +113,7 @@
     - include: galera_status.yml
       when: instance_status == "ACTIVE"
     - fail: msg="Galera Replication on controller Management is still synced. Cannot proceed."
-      when: instance_status == "ACTIVE" and galera_status != 'Out of Sync' and single_controller is not present
+      when: single_controller is not defined and instance_status == "ACTIVE" and galera_status == "Synced"
     - service: name=mysql enabled=no state=stopped
       when: instance_status == "ACTIVE"
 - hosts: all
@@ -173,7 +173,7 @@
   sudo: yes
   tasks:
     - command: /etc/init.d/mysql bootstrap-pxc
-      when: single_controller is not present
+      when: single_controller is not defined
     - service: name=mysql enabled=yes state=started
 - hosts: controller
   name: Rebuild and Refresh Controller
