@@ -1,3 +1,6 @@
+- name: Ensure libvirt-bin is running
+  sudo: yes
+  service: name=libvirt-bin state=started enabled=yes
 - name: Collect list of VMs
   sudo: yes
   virt: command=list_vms
