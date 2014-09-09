@@ -19,6 +19,9 @@ helion: True
 #force_rebuild: True
 #wait_for_hostkey: True
 # This overcloud controller list is for upstream openstack
+#single_controller: True
+# This option adjusts logic to enable single controllers to be upgraded
+# instead of the entire controller cluster.
 overcloud_controller_services:
   - haproxy
   - apache2

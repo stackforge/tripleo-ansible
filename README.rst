@@ -150,3 +150,7 @@ file.
  * wait_for_hostkey - This option causes the playbook to wait for the SSH host
    keys to be restored.  This options should only be used if the restore-ssh-host-keys
    element is built into the new image.
+ * single_controller - This option is for when a single controller node is
+   receiving an upgrade.  It alters the logic so that mysql checks operate
+   as if the mysql database cluster is being maintained online by other
+   controller nodes during the upgrade.
