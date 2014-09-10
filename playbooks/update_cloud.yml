@@ -206,6 +206,26 @@
     - name: Re-run os-collect-config in case first one failed due to a race condition
       sudo: yes
       command: os-collect-config --noforce --one
+- hosts: controller:controllerMgmt
+  name: Start RabbitMQ
+  max_fail_percentage: 0
+  tasks:
+    - name: Stopping all rabbits
+      sudo: yes
+      service: name=rabbitmq-server enabled=no state=stopped
+      when: single_controller is not defined
+    - name: Starting all RabbitMQ nodes
+      sudo: yes
+      command: rabbitmq-server -detached
+      when: single_controller is not defined
+- hosts: controller:controllerMgmt
+  name: Check RabbitMQ
+  max_fail_percentage: 0
+  tasks:
+    - name: Checking rabbitmq cluster status
+      sudo: yes
+      command: rabbitmqctl cluster_status
+      when: single_controller is not defined
 - hosts: controllerMgmt
   name: Enable Overcloud ControllerMgmt
   sudo: yes
