@@ -1,4 +1,5 @@
 - service: name=mysql state=started
+  ignore_errors: yes
 - name: Fetch Galera sync status from MySQL
   sudo: yes
   command: mysql --defaults-file=/mnt/state/root/metadata.my.cnf --socket /var/run/mysqld/mysqld.sock -N -e "SHOW STATUS LIKE 'wsrep_local_state'"
