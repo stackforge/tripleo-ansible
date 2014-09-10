@@ -46,7 +46,7 @@ This is a simplified set of instructions specifically for updating Helion.
 
  * Copy stackrc from undercloud to seed::
 
-   ssh heat-admin@$UNDERCLOUD_IP sudo cat /root/stackrc |sed -e 's/localhost/192.0.2.2/' > undercloud-stackrc
+   ssh heat-admin@$UNDERCLOUD_IP sudo cat /root/stackrc |sed -e "s/localhost/$UNDERCLOUD_IP/" > undercloud-stackrc
 
  * Activate the ansible virtualenv and cd into tripleo-ansible::
 
