@@ -8,6 +8,11 @@
   when: helion is not defined and wsrep_local_state.stdout == "wsrep_local_state\t4"
 - set_fact: galera_status="Out of Sync"
   when: helion is not defined and wsrep_local_state.stdout != "wsrep_local_state\t4"
+- name: Fetch Galera cluster size from MySQL
+  sudo: yes
+  shell: mysql --defaults-file=/mnt/state/root/metadata.my.cnf --socket /var/run/mysqld/mysqld.sock -N -e "SHOW STATUS LIKE 'wsrep_cluster_size'"|cut -f2
+  when: helion is not defined
+  register: wsrep_cluster_size
 - name: Fetch Galera sync status from MySQL - Helion
   sudo: yes
   command: mysql --defaults-file=/mnt/state/root/metadata.my.cnf -N -e "SHOW STATUS LIKE 'wsrep_local_state'"
@@ -17,3 +22,8 @@
   when: helion is defined and wsrep_local_state.stdout == "wsrep_local_state\t4"
 - set_fact: galera_status="Out of Sync"
   when: helion is defined and wsrep_local_state.stdout != "wsrep_local_state\t4"
+- name: Fetch Galera cluster size from MySQL - Helion
+  sudo: yes
+  shell: mysql --defaults-file=/mnt/state/root/metadata.my.cnf -N -e "SHOW STATUS LIKE 'wsrep_cluster_size'"|cut -f2
+  when: helion is defined
+  register: wsrep_cluster_size
