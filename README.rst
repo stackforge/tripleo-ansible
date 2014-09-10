@@ -154,3 +154,6 @@ file.
    receiving an upgrade.  It alters the logic so that mysql checks operate
    as if the mysql database cluster is being maintained online by other
    controller nodes during the upgrade.
+ * ssh_timeout - This value, defaulted to 900 [seconds], is the maximum
+   amount of time that the post-rebuild ssh connection test will wait for
+   before proceeding.
