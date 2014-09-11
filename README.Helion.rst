@@ -9,7 +9,9 @@ This is a simplified set of instructions specifically for updating Helion.
    
    * pull this patch into tripleo-image-elements:
 
+     https://review.hpcloud.net/38795
      https://review.hpcloud.net/38796
+     https://review.hpcloud.net/40032
 
    * pull this patch into hp-image-elements:
 
@@ -30,7 +32,7 @@ This is a simplified set of instructions specifically for updating Helion.
 
    * Use disk-image-create to create a tarball::
 
-     disk-image-create -un -a amd64 image hp-hlinux-apt-repo tripleo-ansible-tarball
+     disk-image-create -un -a amd64 image dpkg hp-hlinux-apt-repo tripleo-ansible-tarball
 
    * The tarball should be named 'tripleo-ansible-$hash-$platform-$arch.tar.gz' For example::
 
