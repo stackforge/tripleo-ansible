@@ -226,10 +226,18 @@
       sudo: yes
       service: name=rabbitmq-server enabled=no state=stopped
       when: single_controller is not defined
+    - name: Just in case use rabbitmqctl too
+      sudo: yes
+      command: rabbitmqctl stop
+      ignore_errors: yes
+    - name: Wait for Rabbit to be stopped
+      wait_for: port=5672 state=stopped timeout=90 delay=10
     - name: Starting all RabbitMQ nodes
       sudo: yes
       command: rabbitmq-server -detached
       when: single_controller is not defined
+    - name: Wait for Rabbit to listen on its usual port
+      wait_for: port=5672 state=started timeout=90 delay=10
 - hosts: controller:controllerMgmt
   name: Check RabbitMQ
   max_fail_percentage: 0
