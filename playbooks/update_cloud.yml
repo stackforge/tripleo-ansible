@@ -64,6 +64,7 @@
   max_fail_percentage: 0
   tasks:
     - service_facts:
+      when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_overcloud_controller_services
       when: helion is defined and instance_status == "ACTIVE" and item in existing_services
@@ -71,6 +72,7 @@
       with_items: overcloud_controller_services
       when: helion is not defined and instance_status == "ACTIVE" and item in existing_services
     - include: stop_tgt.yml
+      when: instance_status == "ACTIVE"
 - hosts: controllerMgmt
   name: Disable Overcloud Controller Mgmt node
   sudo: yes
