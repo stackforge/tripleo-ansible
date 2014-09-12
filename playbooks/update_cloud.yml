@@ -177,6 +177,7 @@
     - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
       when: wait_for_hostkey is not defined
       ignore_errors: yes
+    - pause: seconds=30 prompt="Allowing controllerMgmt node to settle"
 - hosts: controllerMgmt
   name: Start initial Galera cluster node
   max_fail_percentage: 0
@@ -201,6 +202,7 @@
     - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
       when: wait_for_hostkey is not defined
       ignore_errors: yes
+    - pause: seconds=30 prompt="Allowing controller node to settle."
 - hosts: controller
   name: Explicitly start mysql
   max_fail_percentage: 0
