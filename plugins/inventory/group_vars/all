@@ -17,7 +17,7 @@ wait_for: 200
 key_name: ansible_key
 helion: True
 #force_rebuild: True
-#wait_for_hostkey: True
+wait_for_hostkey: True
 # This overcloud controller list is for upstream openstack
 #single_controller: True
 # This option adjusts logic to enable single controllers to be upgraded
