@@ -69,7 +69,6 @@ overcloud_controller_services:
   - ceilometer-agent-notification
   - snmpd
   - rsync
-  - rabbitmq-server
 helion_overcloud_controller_services:
   - apache2
   - beaver
@@ -97,7 +96,6 @@ helion_overcloud_controller_services:
   - ceilometer-api
   - snmpd
   - rsync
-  - rabbitmq-server
   - stunnel
 helion_overcloudmgmt_controller_services:
   - apache2
@@ -129,7 +127,6 @@ helion_overcloudmgmt_controller_services:
   - neutron-l3-agent
   - neutron-metadata-agent
   - neutron-dhcp-agent
-  - rabbitmq-server
   - stunnel
   - open-iscsi
 # This overcloud compute list is for upstream openstack
