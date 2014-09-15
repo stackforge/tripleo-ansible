@@ -192,7 +192,8 @@
     - command: /etc/init.d/mysql bootstrap-pxc
       when: single_controller is not defined
     - include: start_mysql.yml
-    - service: name=rabbitmq-server enabled=yes state=started
+    - shell: if ! rabbitmqctl status; then rabbitmq-server -detached ; fi
+      when: single_controller is not defined
 - hosts: controller
   name: Rebuild and Refresh Controller
   gather_facts: no
@@ -247,10 +248,19 @@
       ignore_errors: yes
     - name: Wait for Rabbit to be stopped
       wait_for: port=5672 state=stopped timeout=90 delay=10
-    - name: Starting all RabbitMQ nodes
+    # The start of RabbitMQ can be tricky as under normal operations
+    # it wants to see all other nodes besides itself when starting.
+    # This can be complicated by os-collect-config still running
+    # and not yet completed in the background, which may beat ansible
+    # to restarting a node.
+    # The issues starting are further compounded as rabbitmq cannot
+    # be started until after os-collect-config and os-refresh-config
+    # begin their work. 
+    - name: Starting all RabbitMQ nodes, if not already running.
       sudo: yes
-      command: rabbitmq-server -detached
+      shell: if ! rabbitmqctl status; then rabbitmq-server -detached ; fi
       when: single_controller is not defined
+      ignore_errors: yes
     - name: Wait for Rabbit to listen on its usual port
       wait_for: port=5672 state=started timeout=90 delay=10
 - hosts: controller:controllerMgmt
