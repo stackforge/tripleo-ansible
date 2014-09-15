@@ -21,7 +21,10 @@
     owner=root
     group=root
     mode=0700
-
 - name: "Preserve ssh host keys"
   sudo: yes
   action: shell cp -a /etc/ssh/ssh_host_* /mnt/state/_ssh_host_keys/
+- name: "Issue Sync to OS in order to help mitigate unsafe disk caching in virtualized environments."
+  command: sync
+- name: "Pausing for 15 seconds to allow for any delayed IO in unsafe disk caches to be written to disk."
+  pause: seconds=15
