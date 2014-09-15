@@ -184,7 +184,7 @@
   tasks:
     - command: /etc/init.d/mysql bootstrap-pxc
       when: single_controller is not defined
-    - service: name=mysql enabled=yes state=started
+    - include: start_mysql.yml
 - hosts: controller
   name: Rebuild and Refresh Controller
   gather_facts: no
@@ -201,6 +201,12 @@
     - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
       when: wait_for_hostkey is not defined
       ignore_errors: yes
+- hosts: controller
+  name: Explicitly start mysql
+  max_fail_percentage: 0
+  sudo: yes
+  tasks:
+    - include: start_mysql.yml
 - hosts: controller:controllerMgmt
   name: Re-Refresh Controller
   max_fail_percentage: 0
