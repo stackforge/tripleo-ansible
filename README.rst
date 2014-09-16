@@ -41,11 +41,6 @@ The following patches are required for operation:
    https://review.openstack.org/#/c/114360/ - This includes a new image
    element, named restore-ssh-host-keys, which is intended to restore host
    keys preserved by the ansible scripts after a reboot.
- * Add tripleo-ansible to /opt/stack - (gozer: hp/tripleo-ansible)
-   https://review.hpcloud.net/#/c/37341 - This includes a new image element,
-   named tripleo-ansible, which can be included in seed and undercloud
-   image builds to allow the tripleo-ansible tools to be automatically
-   deployed for use.
 
 The following patches are HIGHLY recommended:
 
@@ -54,6 +49,11 @@ The following patches are HIGHLY recommended:
    be noted that the upstream PTL has seen it and while it lacks tests so
    can't land right now, it is acceptable to upstream at an existential
    level.
+
+To make things simpler, you may want to add tripleo-ansible to /opt/stack
+on the seed and/or undercloud. We include elements/tripleo-ansible,
+which can be included in seed and undercloud image builds to allow the
+tripleo-ansible tools to be automatically deployed for use.
 
 Running the updates
 -------------------
