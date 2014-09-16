@@ -41,11 +41,6 @@ The following patches are required for operation:
    https://review.openstack.org/#/c/114360/ - This includes a new image
    element, named restore-ssh-host-keys, which is intended to restore host
    keys preserved by the ansible scripts after a reboot.
- * Addition of basic ansible install - (gozer: hp/tripleo-ansible)
-   https://review.hpcloud.net/#/c/37333/ - This includes a new
-   image element, named ansible, installs v1.7.0 of ansible to
-   /opt/stack/venvs/ansible/, and places symlinks for ansible and
-   ansible-playbook to /usr/local/bin to allow for easy program execution.
  * Add tripleo-ansible to /opt/stack - (gozer: hp/tripleo-ansible)
    https://review.hpcloud.net/#/c/37341 - This includes a new image element,
    named tripleo-ansible, which can be included in seed and undercloud
