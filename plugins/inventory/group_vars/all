@@ -14,7 +14,7 @@
 ---
 wait_for: 200
 key_name: ansible_key
-helion: True
+#helion: True
 #force_rebuild: True
 wait_for_hostkey: True
 # This overcloud controller list is for upstream openstack
@@ -182,8 +182,6 @@ undercloud_services:
   - heat-api-cfn
   - heat-api-cloudwatch
   - heat-engine
-  - eon-api
-  - eon-conductor
   - ironic-api
   - nova-api
   - keystone
