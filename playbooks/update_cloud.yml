@@ -192,7 +192,7 @@
     - command: /etc/init.d/mysql bootstrap-pxc
       when: single_controller is not defined
     - include: start_mysql.yml
-    - shell: if ! rabbitmqctl status; then rabbitmq-server -detached ; fi
+    - shell: if ! rabbitmqctl -n rabbit@$(hostname) status; then rabbitmq-server -detached ; fi
       when: single_controller is not defined
 - hosts: controller
   name: Rebuild and Refresh Controller
@@ -258,7 +258,7 @@
     # begin their work. 
     - name: Starting all RabbitMQ nodes, if not already running.
       sudo: yes
-      shell: if ! rabbitmqctl status; then rabbitmq-server -detached ; fi
+      shell: if ! rabbitmqctl -n rabbit@$(hostname) status; then rabbitmq-server -detached ; fi
       when: single_controller is not defined
       ignore_errors: yes
     - name: Wait for Rabbit to listen on its usual port
