@@ -238,6 +238,9 @@
   name: Start RabbitMQ
   max_fail_percentage: 0
   tasks:
+    - name: Stop os-collect-config to avoid collission
+      sudo: yes
+      service: name=os-collect-config state=stopped
     - name: Stopping all rabbits
       sudo: yes
       service: name=rabbitmq-server enabled=no state=stopped
@@ -263,6 +266,9 @@
       ignore_errors: yes
     - name: Wait for Rabbit to listen on its usual port
       wait_for: port=5672 state=started timeout=90 delay=10
+    - name: Restart os-collect-config
+      sudo: yes
+      service: name=os-collect-config state=started
 - hosts: controller:controllerMgmt
   name: Check RabbitMQ
   max_fail_percentage: 0
