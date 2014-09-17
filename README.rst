@@ -55,6 +55,15 @@ on the seed and/or undercloud. We include elements/tripleo-ansible,
 which can be included in seed and undercloud image builds to allow the
 tripleo-ansible tools to be automatically deployed for use.
 
+Pre-flight check
+----------------
+
+A playbook exists that can be used to check the controllers prior to the
+execution of the main playbook in order to quickly identify any issues in
+advance.
+
+    ansible-playbook -vvvv -M library/cloud -i plugins/inventory/heat.py -u heat-admin playbooks/pre-flight_check.yml
+
 Running the updates
 -------------------
     

@@ -1,0 +1,105 @@
+# Copyright (c) 2014 Hewlett-Packard Development Company, L.P.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+- hosts: controllerMgmt:controller
+  name: "Check Controller Node Status - Ensuring MySQL is running"
+  sudo: yes
+  gather_facts: yes
+  max_fail_percentage: 0
+  tasks:
+    - name: "Rename MySQL upstart configuration, if necessary, to obtain correct results."
+      sudo: yes
+      command: mv -f /etc/init/mysql.conf /etc/init/mysql-boot-control.conf removes=/etc/init/mysql.conf
+      when: instance_status == "ACTIVE"
+    - name: "Ensuring MySQL is running - If this fails, the cluster is likely not in a healthy state, and manual checks/recovery will be required."
+      service: name=mysql state=started
+      when: instance_status == "ACTIVE"
+- hosts: controllerMgmt:controller
+  name: Check RabbitMQ server status
+  sudo: yes
+  gather_facts: yes
+  max_fail_percentage: 0
+  tasks:
+    - name: "Execute RabbitMQ status Check to verify RabbitMQ is running."
+      sudo: yes
+      shell: rabbitmqctl -n rabbit@$(hostname) status
+      when: instance_status == "ACTIVE"
+      register: rabbitmq_status
+    - name: "Attempting to start single cluster members, if this fails it may be necessary to restart the nodes manually as root on each node using the command: rabbitmq-server -detached"
+      service: name=rabbitmq-server status=started
+      when: rabbitmq_status.rc != 0
+- hosts: controllerMgmt:controller
+  name: Check controller MySQL Sync status
+  gather_facts: no
+  max_fail_percentage: 0
+  tasks:
+    - name: "Querying MySQL to determine Galera cluster status"
+      sudo: yes
+      shell: mysql --defaults-file=/mnt/state/root/metadata.my.cnf --socket /var/run/mysqld/mysqld.sock -N -e "SHOW STATUS LIKE 'wsrep_local_state'"|cut -f2
+      when: helion is not defined
+      register: wsrep_local_state
+    - name: "Querying MySQL to determine Galera cluster size"
+      sudo: yes
+      shell: mysql --defaults-file=/mnt/state/root/metadata.my.cnf --socket /var/run/mysqld/mysqld.sock -N -e "SHOW STATUS LIKE 'wsrep_cluster_size'"|cut -f2
+      when: helion is not defined
+      register: wsrep_cluster_size
+    - fail: msg="Galera wsrep_local_state is not indicating a healthy state, cluster node may be out of sync, manual intervention required."
+      when: helion is not defined and wsrep_local_state.stdout != "4"
+    - fail: msg="Galera cluster size is being reported as a single node.  The cluster is in an unsafe, possibly split brain state."
+      when: helion is not defined and wsrep_cluster_size.stdout == "1"
+    - name: "Querying MySQL to determine Galera cluster status"
+      sudo: yes
+      shell: mysql --defaults-file=/mnt/state/root/metadata.my.cnf --socket /var/run/mysqld/mysqld.sock -N -e "SHOW STATUS LIKE 'wsrep_local_state'"|cut -f2
+      when: helion is not defined
+      register: wsrep_local_state
+    - name: "Querying MySQL to determine Galera cluster size"
+      sudo: yes
+      shell: mysql --defaults-file=/mnt/state/root/metadata.my.cnf --socket /var/run/mysqld/mysqld.sock -N -e "SHOW STATUS LIKE 'wsrep_cluster_size'"|cut -f2
+      when: helion is not defined
+      register: wsrep_cluster_size
+    - fail: msg="Galera wsrep_local_state is not indicating a healthy state, cluster node may be out of sync, manual intervention required."
+      when: helion is not defined and wsrep_local_state.stdout != "4"
+    - fail: msg="Galera cluster size is being reported as a single node.  The cluster is in an unsafe, possibly split brain state."
+      when: helion is not defined and wsrep_cluster_size.stdout == "1"
+    # Helion
+    - name: "Querying MySQL to determine Galera cluster status - Helion"
+      sudo: yes
+      shell: mysql --defaults-file=/mnt/state/root/metadata.my.cnf -N -e "SHOW STATUS LIKE 'wsrep_local_state'"|cut -f2
+      when: helion is defined
+      register: wsrep_local_state
+    - name: "Querying MySQL to determine Galera cluster size - Helion"
+      sudo: yes
+      shell: mysql --defaults-file=/mnt/state/root/metadata.my.cnf -N -e "SHOW STATUS LIKE 'wsrep_cluster_size'"|cut -f2
+      when: helion is defined
+      register: wsrep_cluster_size
+    - fail: msg="Galera wsrep_local_state is not indicating a healthy state, cluster node may be out of sync, manual intervention required."
+      when: helion is defined and wsrep_local_state.stdout != "4"
+    - fail: msg="Galera cluster size is being reported as a single node.  The cluster is in an unsafe, possibly split brain state."
+      when: helion is defined and wsrep_cluster_size.stdout == "1"
+    - name: "Querying MySQL to determine Galera cluster status - Helion"
+      sudo: yes
+      shell: mysql --defaults-file=/mnt/state/root/metadata.my.cnf -N -e "SHOW STATUS LIKE 'wsrep_local_state'"|cut -f2
+      when: helion is defined
+      register: wsrep_local_state
+    - name: "Querying MySQL to determine Galera cluster size - Helion"
+      sudo: yes
+      shell: mysql --defaults-file=/mnt/state/root/metadata.my.cnf -N -e "SHOW STATUS LIKE 'wsrep_cluster_size'"|cut -f2
+      when: helion is defined
+      register: wsrep_cluster_size
+    - fail: msg="Galera wsrep_local_state is not indicating a healthy state, cluster node may be out of sync, manual intervention required."
+      when: helion is defined and wsrep_local_state.stdout != "4"
+    - fail: msg="Galera cluster size is being reported as a single node.  The cluster is in an unsafe, possibly split brain state."
+      when: helion is defined and wsrep_cluster_size.stdout == "1"
+
+
