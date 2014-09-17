@@ -176,6 +176,7 @@ helion_overcloud_swift_services:
   - open-iscsi
 # This undercloud list is derived from upstream openstack
 undercloud_services:
+  - os-collect-config
   - apache2
   - glance-api
   - heat-api
@@ -198,7 +199,9 @@ undercloud_services:
   - logstash
   - snmpd
   - rabbitmq-server
+  - mysql
 helion_undercloud_services:
+  - os-collect-config
   - apache2
   - beaver
   - glance-api
@@ -229,5 +232,6 @@ helion_undercloud_services:
   - logstash
   - neutron-openvswitch-agent
   - rabbitmq-server
+  - mysql
 helion_overcloud_vsa_services:
   - vsa
