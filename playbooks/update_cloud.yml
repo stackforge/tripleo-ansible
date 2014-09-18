@@ -190,6 +190,7 @@
   sudo: yes
   tasks:
     - include: mysql_init_fix.yml
+    - include: copy_rabbitmq-server.override.yml
     - include: stop_mysql.yml
     # Possibly need to wait to stop mysql
     - include: refresh_config.yml
@@ -213,6 +214,7 @@
       wait_for: port=5672 state=started timeout=90 delay=10
     - name: Restart os-collect-config
       service: name=os-collect-config state=started
+    - include: remove_rabbitmq-server.override.yml
 - hosts: controller
   name: Rebuild and Refresh Controller
   gather_facts: no
@@ -239,6 +241,7 @@
     # MySQL started upon boot, then it would hopefully pickup new config
     # that os-collect-config and os-apply-config would have put in place.
     - include: mysql_init_fix.yml
+    - include: copy_rabbitmq-server.override.yml
     - include: stop_mysql.yml
     - include: refresh_config.yml
     - name: Stop os-collect-config to avoid collission
@@ -267,10 +270,12 @@
       service: name=os-collect-config state=started
     - name: Wait for Rabbit to listen on its usual port
       wait_for: port=5672 state=started timeout=90 delay=10
+    - include: remove_rabbitmq-server.override.yml
 - hosts: controller:controllerMgmt
   name: Check RabbitMQ
   max_fail_percentage: 0
   tasks:
+    - pause: seconds=30 prompt="Giving RabbitMQ time to start-up."
     - name: Checking rabbitmq cluster status
       sudo: yes
       command: rabbitmqctl cluster_status

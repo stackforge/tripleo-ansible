@@ -1,0 +1,6 @@
+- name: "Copy Override for rabbitmq-server"
+  sudo: yes
+  copy:
+    src: files/rabbitmq-server.override
+    dest: /etc/init
+    mode: 0644

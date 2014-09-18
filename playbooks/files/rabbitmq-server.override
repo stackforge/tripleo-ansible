@@ -1,0 +1,3 @@
+exec /usr/sbin/rabbitmq-server -detached > /var/log/rabbitmq/startup_log \
+                              2> /var/log/rabbitmq/startup_err
+post-start exec /bin/true
