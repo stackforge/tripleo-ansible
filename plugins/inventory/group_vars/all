@@ -223,6 +223,7 @@ helion_undercloud_services:
   - nova-scheduler
   - nova-conductor
   - nova-novncproxy
+  - nova-consoleauth
   - neutron-dhcp-agent
   - sirius-api
   - tftpd-hpa

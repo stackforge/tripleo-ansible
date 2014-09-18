@@ -21,6 +21,8 @@
   tasks:
     - service_facts:
       when: instance_status == "ACTIVE"
+    - command: mv -f /etc/init/mysql.conf /etc/init/mysql-boot-control.conf removes=/etc/init/mysql.conf
+      when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_undercloud_services
       when: helion is defined and instance_status == "ACTIVE" and item in existing_services
@@ -172,6 +174,7 @@
     - include: disable_os_collect_config.yml
     - service_facts:
       when: instance_status == "ACTIVE"
+    - include: start_mysql.yml
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_undercloud_services
       when: helion is defined and item in existing_services
