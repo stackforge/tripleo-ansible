@@ -361,8 +361,10 @@
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ nova_compute_rebuild_image_id }}", when: instance_status != "REBUILD" }
     - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=TRIPLEO_HK_RESTORED delay=10
       when: wait_for_hostkey is defined
+      ignore_errors: yes
     - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
       when: wait_for_hostkey is not defined
+      ignore_errors: yes
     - include: refresh_config.yml
 - hosts: nova-compute
   name: Enable Overcloud Compute
