@@ -4,3 +4,6 @@
     src: files/rabbitmq-server.override
     dest: /etc/init
     mode: 0644
+- name: "Reloading upstart configuration"
+  sudo: yes
+  command: initctl reload-configuration
