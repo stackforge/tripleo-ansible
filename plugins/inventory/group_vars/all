@@ -226,7 +226,6 @@ helion_undercloud_services:
   - nova-consoleauth
   - neutron-dhcp-agent
   - sirius-api
-  - tftpd-hpa
   - open-iscsi
   - logstash
   - snmpd
