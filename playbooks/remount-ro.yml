@@ -15,4 +15,4 @@
 ---
 - name: "Change /mnt to be a read-only mount-point"
   sudo: yes
-  command: mount -o remount,ro /mnt
+  command: mount -o remount,ro LABEL=ephemeral0 /mnt
