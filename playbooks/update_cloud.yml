@@ -123,8 +123,12 @@
       when: instance_status == "ACTIVE" and single_controller is not defined and wsrep_cluster_size.stdout == "1"
     - service: name=rabbitmq-server state=stopped
       when: instance_status == "ACTIVE"
+      ignore_errors: yes
     - wait_for: port=3307 state=stopped timeout=60 delay=10
       when: instance_status == "ACTIVE" and helion is defined and single_controller is not defined and galera_status == 'Synced'
+    - name: "Waiting for rabbitmq-server to stop"
+      wait_for: port=5672 state=stopped timeout=60 delay=10
+      when: instance_status == "ACTIVE"
 - hosts: controllerMgmt
   name: Stop MySQL/RabbitMQ on Overcloud Controller Mgmt node
   sudo: yes
@@ -140,6 +144,10 @@
     - service: name=mysql enabled=no state=stopped
       when: instance_status == "ACTIVE"
     - service: name=rabbitmq-server enabled=no state=stopped
+      when: instance_status == "ACTIVE"
+      ignore_errors: yes
+    - name: "Waiting for rabbitmq-server to stop"
+      wait_for: port=5672 state=stopped timeout=60 delay=10
       when: instance_status == "ACTIVE"
 - hosts: all
   gather_facts: no
