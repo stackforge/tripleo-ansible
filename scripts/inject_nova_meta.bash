@@ -34,6 +34,9 @@ for server in $(nova list | sed -e 's/ //g' | awk -F\| '/ACTIVE/ { print $2 "++"
     *SwiftStorage*)
         group="swift-storage"
         ;;
+    *Vsa*)
+        group="vsa"
+        ;;
     *controllerMgmt*)
         group="controllerMgmt"
         ;;

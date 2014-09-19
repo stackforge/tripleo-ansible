@@ -229,3 +229,5 @@ helion_undercloud_services:
   - logstash
   - neutron-openvswitch-agent
   - rabbitmq-server
+helion_overcloud_vsa_services:
+  - vsa
