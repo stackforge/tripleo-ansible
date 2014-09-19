@@ -294,9 +294,11 @@
       shell: if !(rabbitmqctl -n "rabbit@$(hostname)" status); then rabbitmq-server -detached ; fi
       when: single_controller is not defined
       ignore_errors: yes
-    - name: Restart os-collect-config
+    - name: Starting all RabbitMQ nodes, if not already running.
       sudo: yes
-      service: name=os-collect-config state=started
+      shell: if !(rabbitmqctl -n "rabbit@$(hostname)" status); then rabbitmq-server ; fi
+      when: single_controller is defined
+      ignore_errors: yes
     - name: Wait for Rabbit to listen on its usual port
       wait_for: port=5672 state=started timeout=90 delay=10
     - include: remove_rabbitmq-server.override.yml
