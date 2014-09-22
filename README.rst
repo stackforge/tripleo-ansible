@@ -119,6 +119,14 @@ defect is being fixed, you will want to set an environment variable of
 
     ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -vvvv -M library/cloud -i plugins/inventory/heat.py -e controller_rebuild_image_id=4bee1a0a-2670-48e4-a3a4-17da6be795cb -e nova_compute_rebuild_image_id=bd20e098-0753-4dc8-8dba-2f739c01ee65 -u heat-admin playbooks/update_cloud.yml
 
+Python, the language that ansible is written in, buffers IO output by default.
+This can be observed as long pauses between sudden bursts of log entries where
+multiple steps are observed, particullarlly when executed by Jenkins.  This
+behavior can be disabled by passing setting the an environment variable of
+"PYTHONUNBUFFERED=1", examble below.
+
+    PYTHONUNBUFFERED=1 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -vvvv -M library/cloud -i plugins/inventory/heat.py -e controller_rebuild_image_id=4bee1a0a-2670-48e4-a3a4-17da6be795cb -e nova_compute_rebuild_image_id=bd20e098-0753-4dc8-8dba-2f739c01ee65 -u heat-admin playbooks/update_cloud.yml
+
 For more information about Ansible, please refer to the documentation at http://docs.ansible.com/
 
 Failure Handling
