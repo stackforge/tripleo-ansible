@@ -124,7 +124,11 @@
     - service: name=rabbitmq-server state=stopped
       when: instance_status == "ACTIVE"
       ignore_errors: yes
-    - wait_for: port=3307 state=stopped timeout=60 delay=10
+    - command: rabbitmqctl -n "rabbit@$(hostname)" stop
+      when: instance_status == "ACTIVE"
+      ignore_errors: yes
+    - name: "Waiting for MySQL to stop"
+      wait_for: port=3307 state=stopped timeout=60 delay=10
       when: instance_status == "ACTIVE" and helion is defined and single_controller is not defined and galera_status == 'Synced'
     - name: "Waiting for rabbitmq-server to stop"
       wait_for: port=5672 state=stopped timeout=60 delay=10
@@ -144,6 +148,9 @@
     - service: name=mysql enabled=no state=stopped
       when: instance_status == "ACTIVE"
     - service: name=rabbitmq-server enabled=no state=stopped
+      when: instance_status == "ACTIVE"
+      ignore_errors: yes
+    - command: rabbitmqctl -n "rabbit@$(hostname)" stop
       when: instance_status == "ACTIVE"
       ignore_errors: yes
     - name: "Waiting for rabbitmq-server to stop"
