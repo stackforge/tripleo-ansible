@@ -1,3 +1,0 @@
-- name: "Copy Override for rabbitmq-server"
-  sudo: yes
-  file: path=/etc/init/rabbitmq-server.override state=absent

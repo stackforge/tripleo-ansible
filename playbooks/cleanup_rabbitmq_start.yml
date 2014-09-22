@@ -1,0 +1,4 @@
+- name: If node rabbitmq cluster config was present, re-enable os-refresh-config post-configure.d.
+  sudo: yes
+  file: mode=0755 path=/opt/stack/os-config-refresh/post-configure.d/40-rabbitmq
+  when: rabbit_cluster_test.rc == 0 and single_controller is not defined

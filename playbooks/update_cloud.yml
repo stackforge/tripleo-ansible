@@ -190,6 +190,7 @@
     - service_facts:
       when: instance_status == "ACTIVE"
     - include: start_mysql.yml
+    - include: start_rabbitmq.yml
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_undercloud_services
       when: helion is defined and item in existing_services
@@ -219,12 +220,12 @@
   sudo: yes
   tasks:
     - include: mysql_init_fix.yml
-    - include: copy_rabbitmq-server.override.yml
     - include: stop_mysql.yml
     # Possibly need to wait to stop mysql
     - include: refresh_config.yml
     - name: Stop os-collect-config to avoid collission
       service: name=os-collect-config state=stopped
+    - include: start_rabbitmq.yml 
     - name: "Work around apache2 starting up at boot w/o config..."
       service: name=apache2 enabled=no state=stopped
     - name: "Remove os-collect-config disable sentinel file"
@@ -237,13 +238,13 @@
     - include: start_mysql.yml
     - name: "Run os-collect-config"
       command: os-collect-config --force --one
+    # If the start_rabbitmq entry works, this entry can be removed.
     - shell: if !(rabbitmqctl -n "rabbit@$(hostname)" status); then rabbitmq-server -detached ; fi
       when: single_controller is not defined
     - name: Wait for Rabbit to listen on its usual port
       wait_for: port=5672 state=started timeout=90 delay=10
     - name: Restart os-collect-config
       service: name=os-collect-config state=started
-    - include: remove_rabbitmq-server.override.yml
 - hosts: controller
   name: Rebuild and Refresh Controller
   gather_facts: no
@@ -270,11 +271,11 @@
     # MySQL started upon boot, then it would hopefully pickup new config
     # that os-collect-config and os-apply-config would have put in place.
     - include: mysql_init_fix.yml
-    - include: copy_rabbitmq-server.override.yml
     - include: stop_mysql.yml
     - include: refresh_config.yml
     - name: Stop os-collect-config to avoid collission
       service: name=os-collect-config state=stopped
+    - include: start_rabbitmq.yml
     - name: "Work around apache2 starting up at boot w/o config..."
       service: name=apache2 enabled=no state=stopped
     - name: "Remove os-collect-config diable sentinel file"
@@ -289,19 +290,13 @@
   name: Start RabbitMQ
   max_fail_percentage: 0
   tasks:
+    # This may be able to be removed if the the start_rabbitmq include works as intended.
     - name: Starting all RabbitMQ nodes, if not already running.
       sudo: yes
       shell: if !(rabbitmqctl -n "rabbit@$(hostname)" status); then rabbitmq-server -detached ; fi
-      when: single_controller is not defined
-      ignore_errors: yes
-    - name: Starting all RabbitMQ nodes, if not already running.
-      sudo: yes
-      shell: if !(rabbitmqctl -n "rabbit@$(hostname)" status); then rabbitmq-server ; fi
-      when: single_controller is defined
       ignore_errors: yes
     - name: Wait for Rabbit to listen on its usual port
       wait_for: port=5672 state=started timeout=90 delay=10
-    - include: remove_rabbitmq-server.override.yml
 - hosts: controller:controllerMgmt
   name: Check RabbitMQ
   max_fail_percentage: 0
@@ -311,6 +306,7 @@
       sudo: yes
       command: rabbitmqctl cluster_status
       when: single_controller is not defined
+    - include: cleanup_rabbitmq_start.yml
 - hosts: controllerMgmt
   name: Enable Overcloud ControllerMgmt
   sudo: yes
