@@ -27,9 +27,9 @@ echo ============================= >&2
 echo Building with version=$version >&2
 echo ============================= >&2
 
-output_filename="../tripelo-ansible-${version}.tar.gz"
+output_filename="../tripleo-ansible-${version}.tar.gz"
 
 git archive --format=tar.gz --prefix=tripleo-ansible-${version}/ HEAD > $output_filename
 
-output_filename=$(realpath $output_filename)
+output_filename=$(readlink -f $output_filename)
 echo $output_filename
