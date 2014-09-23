@@ -81,6 +81,16 @@ You can obtain the ID with the `glance image-list` command, and then
 set them to be passed into ansible as arguments.
 
     glance image-list
+
+It may be possible to infer the image IDs using the script
+"populate_image_vars". It will try to determine the latest image for
+each image class and set it as a group variable in inventory.
+
+    scripts/populate_image_vars
+
+After it runs, inspect `plugins/inventory/group_vars` and if the data
+is what you expect, you can omit the image ids from the ansible command
+line below.
         
 You will now want to utilize the image ID values observed in the previous
 step, and execute the ansible-playbook command with the appropriate values
@@ -89,6 +99,10 @@ in are nova_compute_rebuild_image_id and controller_rebuild_image_id
 which are passed into the chained playbook.
      
     ansible-playbook -vvvv -u heat-admin -i plugins/inventory/heat.py -e nova_compute_rebuild_image_id=1ae9fe6e-c0cc-4f62-8e2b-1d382b20fdcb -e controller_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc -e controllermgmt_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc -e swift_storage_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc -e vsa_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc playbooks/update_cloud.yml
+
+If you have set the image ids in group vars:
+
+    ansible-playbook -vvvv -u heat-admin -i plugins/inventory/heat.py playbooks/update_cloud.yml
      
 Below, we break down the above command so you can see what each part does:  
                  

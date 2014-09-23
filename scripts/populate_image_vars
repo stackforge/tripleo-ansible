@@ -1,0 +1,151 @@
+#!/usr/bin/env python
+# Copyright (c) 2014 Hewlett-Packard Development Company, L.P.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+import tempfile
+import yaml
+
+# Example
+# +--------------------------------------+------------------------------------+-------------+------------------+------------+--------+
+# | ID                                   | Name                               | Disk Format | Container Format | Size       | Status |
+# +--------------------------------------+------------------------------------+-------------+------------------+------------+--------+
+# | ec91d1d4-01a1-4cfb-8ad3-eade8c8319fe | bm-deploy-kernel                   | aki         | aki              | 3170560    | active |
+# | 4d262433-5953-481f-8be5-538f2ed38bf8 | bm-deploy-ramdisk                  | ari         | ari              | 22025013   | active |
+# | 1653f657-bff6-4365-a120-cc92034e4a4c | overcloud-compute-101              | qcow2       | bare             | 603799552  | active |
+# | 41904372-f07c-43fe-8b86-8e295b192728 | overcloud-compute-101-initrd       | ari         | ari              | 9966177    | active |
+# | 3652aa91-e37c-456e-a0b5-563b4e0df2b1 | overcloud-compute-101-vmlinuz      | aki         | aki              | 3170560    | active |
+# | 797e053c-77cb-46b7-8a71-b3bd6b79d121 | overcloud-control-101              | qcow2       | bare             | 907608064  | active |
+# | 8c45d9a7-f371-4151-9ec1-c495713f0d3c | overcloud-control-101-initrd       | ari         | ari              | 10729856   | active |
+# | 67a37fc2-cb0e-4be8-a434-23e1884ecb03 | overcloud-control-101-vmlinuz      | aki         | aki              | 3170560    | active |
+# | 37de0bb8-c7fc-406e-bfec-ed9913f6eceb | overcloud-control-mgmt-101         | qcow2       | bare             | 1035993088 | active |
+# | fa0def7e-294c-4f3d-a5f3-f646f4930285 | overcloud-control-mgmt-101-initrd  | ari         | ari              | 10729426   | active |
+# | 75a25d07-b567-41b8-935d-5406c9ea13d5 | overcloud-control-mgmt-101-vmlinuz | aki         | aki              | 3170560    | active |
+# | 4a694bef-e491-4658-8320-5a78b93573d1 | overcloud-swift-101                | qcow2       | bare             | 384146432  | active |
+# | 42d602a1-8aa3-4845-9b9c-d302873d4557 | overcloud-swift-101-initrd         | ari         | ari              | 9965422    | active |
+# | 499848c6-6ffd-443f-b505-eb95aaf7b3d9 | overcloud-swift-101-vmlinuz        | aki         | aki              | 3170560    | active |
+# | ae95bbc8-a1f6-4f30-ab33-03e06aecd559 | overcloud-vsa-101                  | qcow2       | bare             | 827457536  | active |
+# | 2228dc1d-9e47-4a07-b723-575fda5f944c | overcloud-vsa-101-initrd           | ari         | ari              | 9965593    | active |
+# | 0a8d6d5a-8e4f-4a59-9f4a-3e6155a5d22c | overcloud-vsa-101-vmlinuz          | aki         | aki              | 3170560    | active |
+# +--------------------------------------+------------------------------------+-------------+------------------+------------+--------+
+
+
+def image_list():
+    # Using subprocess to avoid glanceclient dep for now
+    glance_list = subprocess.Popen(
+        ['glance', 'image-list'],
+        stdout=subprocess.PIPE
+    )
+    for line in glance_list.stdout:
+        if line[0] != '|':
+            continue
+        if line[2:5] == 'ID ':
+            continue
+        (image_id, name, image_type) = [
+            x.strip() for x in line.split('|', 4)[1:4]
+        ]
+        if image_type != 'qcow2':
+            continue
+        yield (image_id, name, image_type)
+    glance_list.wait()
+
+
+def name_to_class(name):
+    (stack, bits) = name.split('-', 1)
+    bits = bits.split('-')
+    new_bits = []
+    buildnum = None
+    for bit in bits:
+        try:
+            buildnum = int(bit)
+        except ValueError:
+            new_bits.append(bit)
+    if new_bits == ['compute']:
+        return ('nova-compute', buildnum)
+    if new_bits == ['control', 'mgmt']:
+        return ('controllerMgmt', buildnum)
+    if new_bits == ['control']:
+        return ('controller', buildnum)
+    if new_bits == ['swift']:
+        return ('swift-storage', buildnum)
+    return ('-'.join(new_bits), buildnum)
+
+
+def find_images(target_buildnum=None):
+    mapping = {}
+    for (image_id, name, image_type) in image_list():
+        (image_class, buildnum) = name_to_class(name)
+        if image_class in mapping:
+            if target_buildnum is None:
+                if mapping[image_class]['buildnum'] >= buildnum:
+                    continue
+            else:
+                if buildnum != target_buildnum:
+                    continue
+        mapping[image_class] = {'buildnum': buildnum, 'id': image_id}
+    return mapping
+
+
+def keys_to_variables(k, v):
+    variable_name = '%s_rebuild_image_id' % k.replace('-', '_').lower()
+    value = v['id']
+    return {variable_name: value}
+
+
+def parse_args(argv):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('buildnum', type=int, nargs='?',
+                        help='Build number, if left out will take highest. '
+                             'If the build is not found, an existing '
+                             'image that matches a class will be used.')
+    parser.add_argument('--output-dir', default='plugins/inventory/group_vars')
+    return parser.parse_args(argv[1:])
+
+
+def main(argv):
+    args = parse_args(argv)
+    images = find_images(target_buildnum=args.buildnum)
+    if not images:
+        print('ERROR: no images found, aborting')
+        return 2
+    print(json.dumps(images, indent=4))
+    for k, v in iter(images.items()):
+        if k == 'all':
+            continue
+        the_vars = keys_to_variables(k, v)
+        output_path = os.path.join(args.output_dir, k)
+        if os.path.exists(output_path):
+            print('... Editting %s' % output_path)
+            with open(output_path, 'r') as input_file:
+                existing = yaml.load(input_file.read())
+        else:
+            print('... Creating %s' % output_path)
+            existing = {}
+        existing.update(the_vars)
+        prefix = '.%s' % k
+        with tempfile.NamedTemporaryFile(
+            prefix=prefix,
+            dir=args.output_dir,
+            delete=False
+        ) as out:
+            out.write(yaml.dump(existing, default_flow_style=False))
+            os.rename(out.name, output_path)
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))
