@@ -1,5 +1,0 @@
-exec sleep 1000000000000
-post-start script
-    rabbitmq-server -detached > /var/log/rabbitmq/startup_log 2> /var/log/rabbitmq/startup_err &
-end script
-post-stop exec rabbitmqctl stop

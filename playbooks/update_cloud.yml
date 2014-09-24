@@ -221,11 +221,10 @@
   tasks:
     - include: mysql_init_fix.yml
     - include: stop_mysql.yml
-    # Possibly need to wait to stop mysql
+    - include: rabbitmq_occ_disable.yml
     - include: refresh_config.yml
     - name: Stop os-collect-config to avoid collission
       service: name=os-collect-config state=stopped
-    - include: start_rabbitmq.yml 
     - name: "Work around apache2 starting up at boot w/o config..."
       service: name=apache2 enabled=no state=stopped
     - name: "Remove os-collect-config disable sentinel file"
@@ -236,11 +235,9 @@
       command: /etc/init.d/mysql bootstrap-pxc
       when: single_controller is not defined
     - include: start_mysql.yml
+    - include: start_rabbitmq.yml
     - name: "Run os-collect-config"
       command: os-collect-config --force --one
-    # If the start_rabbitmq entry works, this entry can be removed.
-    - shell: if !(rabbitmqctl -n "rabbit@$(hostname)" status); then rabbitmq-server -detached ; fi
-      when: single_controller is not defined
     - name: Wait for Rabbit to listen on its usual port
       wait_for: port=5672 state=started timeout=90 delay=10
     - name: Restart os-collect-config
@@ -272,10 +269,10 @@
     # that os-collect-config and os-apply-config would have put in place.
     - include: mysql_init_fix.yml
     - include: stop_mysql.yml
+    - include: rabbitmq_occ_disable.yml
     - include: refresh_config.yml
     - name: Stop os-collect-config to avoid collission
       service: name=os-collect-config state=stopped
-    - include: start_rabbitmq.yml
     - name: "Work around apache2 starting up at boot w/o config..."
       service: name=apache2 enabled=no state=stopped
     - name: "Remove os-collect-config diable sentinel file"
@@ -283,20 +280,13 @@
     - name: "Run os-collect-config"
       command: os-collect-config --force --one
     - include: start_mysql.yml
+    - include: start_rabbitmq.yml
     - name: Re-run os-collect-config in case first one failed due to a race condition
-      sudo: yes
       command: os-collect-config --noforce --one
-- hosts: controller
-  name: Start RabbitMQ
-  max_fail_percentage: 0
-  tasks:
-    # This may be able to be removed if the the start_rabbitmq include works as intended.
-    - name: Starting all RabbitMQ nodes, if not already running.
-      sudo: yes
-      shell: if !(rabbitmqctl -n "rabbit@$(hostname)" status); then rabbitmq-server -detached ; fi
-      ignore_errors: yes
+    - name: "Restart os-collect-config"
+      service: name=os-collect-config state=started
     - name: Wait for Rabbit to listen on its usual port
-      wait_for: port=5672 state=started timeout=90 delay=10
+      wait_for: port=5672 state=started timeout=120 delay=10
 - hosts: controller:controllerMgmt
   name: Check RabbitMQ
   max_fail_percentage: 0
