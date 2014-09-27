@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- name: "Change /mnt to be a read-only mount-point"
-  sudo: yes
-  command: umount /mnt
-  ignore_errors: True
-  register: test_remount
-  when: instance_status == "ACTIVE" and online_upgrade is not defined
-- include: step_fail_unmount.yml
-  when: instance_status == "ACTIVE" and online_upgrade is not defined and test_remount.rc != 0
+- name: "Upload Image to remote host"
+  synchronize:
+    compress: yes
+    checksum: yes
+    archive: yes
+    src: "{{ update_image }}"
+    dest: "{{ default_update_file_location }}"

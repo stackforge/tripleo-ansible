@@ -13,11 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- name: "Change /mnt to be a read-only mount-point"
+- name: "Remove ssh from cloud-init job."
   sudo: yes
-  command: umount /mnt
-  ignore_errors: True
-  register: test_remount
-  when: instance_status == "ACTIVE" and online_upgrade is not defined
-- include: step_fail_unmount.yml
-  when: instance_status == "ACTIVE" and online_upgrade is not defined and test_remount.rc != 0
+  command: sed -i 's/^ - ssh$/# - ssh/' /etc/cloud/cloud.cfg
+- name: "Remove ssh-authkey-fingerprints from cloud-init job."
+  sudo: yes
+  command: sed -i 's/^ - ssh-authkey-fingerprints$/# - ssh-authkey-fingerprints/' /etc/cloud/cloud.cfg
+- name: "Initiate cloudinit"
+  sudo: yes
+  command: /usr/bin/cloud-init init

@@ -12,12 +12,13 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# NOTE: This playbook MUST be executed one instance at a time as it
+# is notsafe to allow multiple machines to execute this task at one
+# time.
 ---
-- name: "Change /mnt to be a read-only mount-point"
-  sudo: yes
-  command: umount /mnt
-  ignore_errors: True
-  register: test_remount
-  when: instance_status == "ACTIVE" and online_upgrade is not defined
-- include: step_fail_unmount.yml
-  when: instance_status == "ACTIVE" and online_upgrade is not defined and test_remount.rc != 0
+- name: "Download Image"
+  glance_download:
+    image_id: "{{ nova_compute_rebuild_image_id }}"
+    path: "/tmp/image-{{ rebuild_image_id }}.qcow2"
+  delegate_to: localhost
