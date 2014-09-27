@@ -27,6 +27,8 @@
   gather_facts: no
   max_fail_percentage: 0
   tasks:
+    - fail: "Fail if online_upgrade is defined - online upgrades are not supported on undercloud instances."
+      when: online_upgrade is defined
     - service_facts:
       when: instance_status == "ACTIVE"
     - command: mv -f /etc/init/mysql.conf /etc/init/mysql-boot-control.conf removes=/etc/init/mysql.conf
@@ -43,9 +45,10 @@
   gather_facts: no
   max_fail_percentage: 0
   tasks:
-    - service: name=nova-compute state=stopped
+    - fail: "FAILURE: Cannot perform an online upgrade on nodes that are not in ACTIVE state"
+      when: instance_status != "ACTIVE" and online_upgrade is defined
     - include: stop_vms.yml
-      when: instance_status == "ACTIVE"
+      when: instance_status == "ACTIVE" and online_upgrade is not defined
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
@@ -60,6 +63,8 @@
   gather_facts: no
   max_fail_percentage: 0
   tasks:
+    - fail: "Fail if online_upgrade is defined - online upgrades are not supported on swift instances."
+      when: online_upgrade is defined
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
@@ -74,6 +79,8 @@
   gather_facts: no
   max_fail_percentage: 0
   tasks:
+    - fail: "Fail if online_upgrade is defined - online upgrades are not supported on vsa instances."
+      when: online_upgrade is defined
     - include: stop_vms.yml
       when: instance_status == "ACTIVE"
     - service_facts:
@@ -87,6 +94,8 @@
   gather_facts: no
   max_fail_percentage: 0
   tasks:
+    - fail: "Fail if online_upgrade is defined - online upgrades are not supported on controller instances."
+      when: online_upgrade is defined
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
@@ -103,6 +112,8 @@
   gather_facts: no
   max_fail_percentage: 0
   tasks:
+    - fail: "Fail if online_upgrade is defined - online upgrades are not supported on controllerMgmt instances."
+      when: online_upgrade is defined
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
@@ -465,34 +476,53 @@
       with_items: helion_overcloud_vsa_services
       when: helion is defined and item in existing_services
 - hosts: nova-compute
-  name: Rebuild and Refresh Nova Compute
+  name: "Download image from glance if online upgrade is being invoked"
   gather_facts: no
+  max_fail_percentage: 0
+  # This play must be executed one instance at a time as it downloads
+  # files to the local machine where ansible is executing.
+  serial: 1
+  tasks:
+    - include: step_update_online_download_image.yml
+      vars:
+          rebuild_image_id: "{{ nova_compute_rebuild_image_id }}"
+      when: online_upgrade is defined
+- hosts: nova-compute
+  name: Rebuild and Refresh Nova Compute
+  gather_facts: yes
   max_fail_percentage: 0
   tasks:
     - include: step_preserve_password_file.yml
       when: instance_status == "ACTIVE"
-    - include: preserve_ssh_host_keys.yml
-      when: instance_status == "ACTIVE"
-    - include: step_unmount.yml
-      when: instance_status == "ACTIVE"
-    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ nova_compute_rebuild_image_id }}", when: instance_status != "REBUILD" }
-    - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=TRIPLEO_HK_RESTORED delay=10
-      when: wait_for_hostkey is defined
-      ignore_errors: yes
-    - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
-      when: wait_for_hostkey is not defined
-      ignore_errors: yes
-    - include: refresh_config.yml
+    - include: step_update_rebuild_node.yml
+      vars:
+          instance_id: "{{ instance_id }}"
+          rebuild_image_id: "{{ nova_compute_rebuild_image_id }}"
+      when: online_upgrade is not defined
+    - include: step_update_online.yml
+      vars:
+          rebuild_image_id: "{{ nova_compute_rebuild_image_id }}"
+      when: online_upgrade is defined
+    - include: step_stamp_image_id.yml
+      vars:
+          rebuild_image_id: "{{ nova_compute_rebuild_image_id }}"
+    - include: step_cleanup_from_online_upgrade.yml
+      when: online_upgrade is defined
 - hosts: nova-compute
   name: Enable Overcloud Compute
   sudo: yes
   max_fail_percentage: 0
   tasks:
     - include: disable_os_collect_config.yml
+      when: online_upgrade is not defined
+    - include: step_cloud_init.yml
+      when: online_upgrade is defined
     - name: "Run os-collect-config"
-      sudo: yes
+      command: os-collect-config --force --one
+    - name: "Run os-collect-config as a single attempt seems not to always succeed."
       command: os-collect-config --force --one
     - service: name=os-collect-config state=started
+    - pause: seconds=30 msg="Pausing for 30 seconds to allow os-collect-config to get things started."
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started

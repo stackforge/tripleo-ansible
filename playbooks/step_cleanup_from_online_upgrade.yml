@@ -13,11 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- name: "Change /mnt to be a read-only mount-point"
+- name: "Cleaning up /mnt/state/_upgrade_recovery"
   sudo: yes
-  command: umount /mnt
-  ignore_errors: True
-  register: test_remount
-  when: instance_status == "ACTIVE" and online_upgrade is not defined
-- include: step_fail_unmount.yml
-  when: instance_status == "ACTIVE" and online_upgrade is not defined and test_remount.rc != 0
+  file:
+    path: /mnt/state/_upgrade_recovery
+    state: absent
+- name: "Cleaning up /tmp/upgrade_image.qcow2"
+  sudo: yes
+  file:
+    path: /tmp/upgrade_image.qcow2
+    state: absent

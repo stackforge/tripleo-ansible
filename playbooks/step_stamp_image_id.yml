@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- name: "Change /mnt to be a read-only mount-point"
+- name: "Write image ID to instance disk for online upgrades to check"
   sudo: yes
-  command: umount /mnt
-  ignore_errors: True
-  register: test_remount
-  when: instance_status == "ACTIVE" and online_upgrade is not defined
-- include: step_fail_unmount.yml
-  when: instance_status == "ACTIVE" and online_upgrade is not defined and test_remount.rc != 0
+  copy:
+    content: "{{ rebuild_image_id }}"
+    dest: /etc/tripleo_image_id
+    owner: root
+    group: root
+    mode: 0644

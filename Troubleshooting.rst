@@ -509,3 +509,51 @@ networking.
 
       * Once the compute node has stopped, execute `nova start <id>` to
         reboot the compute node.
+
+Online Upgrade fails with message saying glanceclient is not found.
+===================================================================
+
+  * Symptoms:
+
+    * Online upgrade has been attempted, however the playbook
+      execution failed when attempting to download the new image from
+      Glance reporting that glanceclient was not found.
+
+  * Solution:
+
+    * If you are attempting to execute the Ansible playbook on the seed or
+      undercloud node, source the Ansible virtual environment by executing
+      `source /opt/stack/venvs/ansible/bin/activate`
+
+    * Once the Ansible virtual environment has been sourced, execute
+      `sudo pip install python-glanceclient` on the node you are attempting
+      to execute Ansible from.
+
+Online Upgrade of compute node failed
+=====================================
+
+In the event that an online upgrade of a compute node somehow failed, the node
+can be recovered utilizing a traditional rebuild.
+
+  * Symptoms:
+
+    * Online upgrade was performed.
+
+    * Compute node cannot be logged into, or is otherwise in a
+      non-working state.
+
+  * Solution:
+
+    * From the undercloud:
+
+      * Execute `source /root/stackrc`
+
+      * Identify the instance ID of the broken compute node via `nova list`
+
+      * Execute the command `nova stop <instance-id>` to stop the instance.
+
+      * Return to the host that you ran the upgrade from and re-run the playbook
+        without the "-e online_upgrade=True" option.
+
+      * Additionally, you may need to utilize the "-e force_rebuild=True" option
+        to force the instance to rebuild.

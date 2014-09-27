@@ -193,6 +193,21 @@ file.
  * previous_upgrade_failed_restart_mysql - This option enables logic to restart
    MySQL in the event it is not running on the controllerMgmt node, likely from
    a failed upgrade.
+ * online_upgrade - This setting tells the script to attempt an online upgrade
+   of the node.  At present this is only known to work on compute nodes.
+
+Online Upgrade
+--------------
+
+When an upgrade *does not* require a kernel update, the Online Upgrade feature
+can be utilized to upgrade compute nodes while leaving their virtual machines
+in a running state.  The result is a short one to two minute loss of network
+connectivity for the virtual machines as os-refresh-config stops and
+restarts key services which causes the loss in network connectivity.
+
+This operation is performed by uploading the new image to the /tmp folder on
+the node, syncing file contents over while preserving key files, and then
+restarting services.  This is only known to work on compute nodes.
 
 Nova Powercontrol
 -----------------
@@ -220,3 +235,4 @@ ansible-playbook command line for the playbooks to utilize the nova_powercontrol
 module:
 
     -e use_nova_powercontrol=True 
+
