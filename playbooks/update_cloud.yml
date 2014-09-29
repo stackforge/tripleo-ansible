@@ -167,6 +167,8 @@
   gather_facts: no
   max_fail_percentage: 0
   tasks:
+    - include: step_preserve_password_file.yml
+      when: instance_status == "ACTIVE"
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
     - include: cleanup_cinder_volumes.yml
@@ -202,6 +204,8 @@
   gather_facts: no
   max_fail_percentage: 0
   tasks:
+    - include: step_preserve_password_file.yml
+      when: instance_status == "ACTIVE"
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
     - include: cleanup_cinder_volumes.yml
@@ -231,6 +235,7 @@
       file: path=/mnt/state/disable-os-collect-config state=absent
     - name: "Run os-collect-config"
       command: os-collect-config --force --one
+    - include: step_reset_mnt_state_permissions.yml
     - name: Bootstrap the MySQL cluster
       command: /etc/init.d/mysql bootstrap-pxc
       when: single_controller is not defined
@@ -248,6 +253,8 @@
   gather_facts: no
   max_fail_percentage: 0
   tasks:
+    - include: step_preserve_password_file.yml
+      when: instance_status == "ACTIVE"
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
     - include: cleanup_cinder_volumes.yml
@@ -271,6 +278,7 @@
     - include: mysql_init_fix.yml
     - include: stop_mysql.yml
     - include: rabbitmq_occ_disable.yml
+    - include: step_reset_mnt_state_permissions.yml
     - include: refresh_config.yml
     - name: Stop os-collect-config to avoid collission
       service: name=os-collect-config state=stopped
@@ -399,6 +407,8 @@
   gather_facts: no
   max_fail_percentage: 0
   tasks:
+    - include: step_preserve_password_file.yml
+      when: instance_status == "ACTIVE"
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ nova_compute_rebuild_image_id }}", when: instance_status != "REBUILD" }
