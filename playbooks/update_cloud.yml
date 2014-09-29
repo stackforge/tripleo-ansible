@@ -235,6 +235,7 @@
       command: /etc/init.d/mysql bootstrap-pxc
       when: single_controller is not defined
     - include: start_mysql.yml
+    - include: step_create_databases.yml
     - include: start_rabbitmq.yml
     - name: "Run os-collect-config"
       command: os-collect-config --force --one
@@ -260,7 +261,7 @@
       ignore_errors: yes
     - pause: seconds=30 prompt="Allowing controller node to settle."
 - hosts: controller
-  name: Re-Refresh Controller
+  name: Stop and setup for controller refresh
   max_fail_percentage: 0
   sudo: yes
   tasks:
@@ -280,6 +281,18 @@
     - name: "Run os-collect-config"
       command: os-collect-config --force --one
     - include: start_mysql.yml
+- hosts: controller
+  name: Initiate Database Creation
+  max_fail_percentage: 0
+  serial: 1
+  sudo: yes
+  tasks:
+    - include: step_create_databases.yml
+- hosts: controller
+  name: Complete Controller Refresh
+  max_fail_percentage: 0
+  sudo: yes
+  tasks:
     - include: start_rabbitmq.yml
     - name: Re-run os-collect-config in case first one failed due to a race condition
       command: os-collect-config --noforce --one
