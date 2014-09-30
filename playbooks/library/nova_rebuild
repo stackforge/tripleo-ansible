@@ -195,7 +195,7 @@ def _rebuild_server(module, nova):
                 public = openstack_find_nova_addresses(getattr(server, 'addresses'), 'floating', 'public')
                 module.exit_json(changed = True, id = server.id, private_ip=''.join(private), public_ip=''.join(public), status = server.status, info = server._info)
             if server.status == 'ERROR':
-                module.fail_json(msg = "Error in rebuilding the server, please check logs")
+                module.fail_json(msg = "Instance exited Nova Rebuild in an ERROR state, please check OpenStack logs")
             time.sleep(2)
 
         module.fail_json(msg = "Timeout waiting for the server to come up.. Please check manually")
