@@ -22,6 +22,39 @@ overload of the undercloud.
 
   * Notes:
 
+MySQL fails to start upon retrying update
+=========================================
+
+If the update was aborted or failed during the Update sequence before a
+single MySQL controller was operational, MySQL will fail to start upon retrying.
+
+  * Symptoms:
+    * Update is being re-attempted.
+
+    * The following error messages having been observed.
+
+       * msg: Starting MySQL (Percona XtraDB Cluster) database server: mysqld . . . . The server quit without updating PID file (/var/run/mysqld/mysqld.pid)
+
+       * stderr: ERROR 2002 (HY000): Can't connect to local MySQL server through socket '/var/run/mysqld/mysqld.sock' (111)
+
+       * FATAL: all hosts have already failed -- aborting
+
+    * Update automatically aborts.
+
+  * Solution:
+
+    * Use `nova list` to determine the IP of the congtrollerMgmt node, then ssh into it::
+
+      ssh heat-admin@$IP
+
+    * Verify MySQL is down by running the mysql client as root. It _should_ fail::
+
+      sudo mysql -e "SELECT 1"
+
+    * Start MySQL back up in single node bootstrap mode::
+
+      sudo /etc/init.d/mysql bootstrap-pxc
+
 MySQL/Percona/Galera is out of sync
 ===================================
 
@@ -78,6 +111,11 @@ Apache2 Fails to start
 Apache2 requires some self-signed SSL certificates to be put in place
 that may not have been configured yet due to earlier failures in the
 setup process.
+
+  * Error Message:
+
+    * failed: [192.0.2.25] => (item=apache2) => {"failed": true, "item": "apache2"}
+    * msg: start: Job failed to start
 
   * Symptoms:
 
