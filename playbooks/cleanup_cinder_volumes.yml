@@ -18,4 +18,4 @@
   shell: for loopdevice in `losetup -a| cut -d ':' -f 1`; do losetup --detach $loopdevice; done
 - name: "Remove any cinder volume mounts that may be present"
   sudo: yes
-  shell: for CINDER_VOLUME in `ls /dev/mapper/|grep 'cinder--volumes'`; do dmsetup remove $CINDER_VOLUME; done
+  shell: for CINDER_VOLUME in `dmsetup ls 2>/dev/null | cut -f 1 |grep 'cinder--volumes'`; do dmsetup remove $CINDER_VOLUME; done
