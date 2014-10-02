@@ -16,6 +16,11 @@
   shell: grep -q "$(hostname)" "/mnt/state/var/lib/rabbitmq/mnesia/rabbit@$(hostname)/cluster_nodes.config"
   ignore_errors: yes
   register: rabbit_cluster_test
-- name: If node rabbitmq cluster config was present, prevent os-refresh-config post-configure.d job from executing.
-  file: mode=0644 path=/opt/stack/os-config-refresh/post-configure.d/40-rabbitmq
+- name: Collect names of post-configure.d rabbitmq files
+  shell: ls /opt/stack/os-config-refresh/post-configure.d/|grep '\-rabbitmq$'
+  register: test_rabbitmq_script_list
   when: rabbit_cluster_test.rc == 0
+- name: If node rabbitmq cluster config was present, prevent os-refresh-config post-configure.d job from executing.
+  file: mode=0644 path="/opt/stack/os-config-refresh/post-configure.d/{{item}}"
+  when: rabbit_cluster_test.rc == 0
+  with_items: test_rabbitmq_script_list.stdout_lines

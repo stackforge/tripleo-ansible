@@ -12,7 +12,12 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+- name: Collect names of post-configure.d rabbitmq files
+  shell: ls /opt/stack/os-config-refresh/post-configure.d/|grep '\-rabbitmq$'
+  register: test_rabbitmq_script_list
+  when: rabbit_cluster_test.rc == 0 and single_controller is not defined
 - name: If node rabbitmq cluster config was present, re-enable os-refresh-config post-configure.d.
   sudo: yes
-  file: mode=0755 path=/opt/stack/os-config-refresh/post-configure.d/40-rabbitmq
+  file: mode=0755 path="/opt/stack/os-config-refresh/post-configure.d/{{item}}"
   when: rabbit_cluster_test.rc == 0 and single_controller is not defined
+  with_items: test_rabbitmq_script_list.stdout_lines
