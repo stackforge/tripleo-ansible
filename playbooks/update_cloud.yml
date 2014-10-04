@@ -20,6 +20,7 @@
   max_fail_percentage: 0
   tasks:
     - include: update_local_ssh_config.yml
+- include: step_pre_hook.yml
 - hosts: undercloud
   name: Disable Undercloud
   sudo: yes
@@ -502,3 +503,4 @@
       when: helion is not defined and item in existing_services
     - pause: seconds=60 prompt="Giving Open vSwitch time to reconnect"
     - service: name=nova-compute state=started enabled=yes
+- include: step_post_hook.yml
