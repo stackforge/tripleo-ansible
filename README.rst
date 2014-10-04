@@ -173,9 +173,9 @@ file.
    from being rebuilt if the pre-existing image id maches the id being deployed.
    This may be useful for the purposes of testing.
    Example command line addition: -e force_rebuild=True
- * wait_for_hostkey - This option causes the playbook to wait for the SSH host
-   keys to be restored.  This options should only be used if the restore-ssh-host-keys
-   element is built into the new image.
+ * wait_for_hostkey - This option causes the playbook to wait for the
+   SSH host keys to be restored.  This option should only be used if
+   the restore-ssh-host-keys element is built into the new image.
  * single_controller - This option is for when a single controller node is
    receiving an upgrade.  It alters the logic so that mysql checks operate
    as if the mysql database cluster is being maintained online by other
@@ -185,3 +185,8 @@ file.
  * ssh_timeout - This value, defaulted to 900 [seconds], is the maximum
    amount of time that the post-rebuild ssh connection test will wait for
    before proceeding.
+ * pre_hook_command - This, when set to a command, such as /bin/date,
+   will execute that command on the host where the playbook is run
+   before starting any jobs.
+ * post_hook_command - Similar to the pre_hook_command variable, when
+   defined, will execute upon the completion of the upgrade job.
