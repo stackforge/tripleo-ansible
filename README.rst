@@ -26,29 +26,15 @@ Please see the `ansible` element in `tripleo-image-elements`
 
 The following patches are required for operation:
 
- * Allow using non-default collectors (openstack/os-collect-config)
-   - https://review.openstack.org/#/c/114116/2 - This is a bugfix for
-   os-collect-config.
  * Add nova metadata for group (openstack/tripleo-heat-templates) -
    https://review.openstack.org/#/c/113358/2 - This heat template update
    labels instances such that the ansible tools can group the instances
    into groups to facilitate the updates.
- * Make signal_transport a parameter (openstack/tripleo-heat-templates)
-   - https://review.openstack.org/#/c/113408/2 - Parameterizes
-   signal_transport to allow updates to occur other than via Heat.
  * Element to restore ssh keys from
    /mnt/state (openstack/tripleo-image-elements) -
    https://review.openstack.org/#/c/114360/ - This includes a new image
    element, named restore-ssh-host-keys, which is intended to restore host
    keys preserved by the ansible scripts after a reboot.
-
-The following patches are HIGHLY recommended:
-
- * Allow rebuild of node in ERROR and DEPLOYFAIL state -
-   (openstack/ironic) https://review.openstack.org/#/c/114281/3  It should
-   be noted that the upstream PTL has seen it and while it lacks tests so
-   can't land right now, it is acceptable to upstream at an existential
-   level.
 
 To make things simpler, you may want to add tripleo-ansible to /opt/stack
 on the seed and/or undercloud. We include elements/tripleo-ansible,
