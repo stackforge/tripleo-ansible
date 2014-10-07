@@ -1,0 +1,34 @@
+# Copyright (c) 2014 Hewlett-Packard Development Company, L.P.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+# *** DANGER ***
+# This should only be invoked IF the previous upgrade failed.
+- name: "Checking to see if MySQL is working"
+  command: mysql --defaults-file=/mnt/state/root/metadata.my.cnf -N -e "SELECT 1"
+  when: helion is defined and previous_upgrade_failed_restart_mysql is defined
+  ignore_errors: yes
+  register: test_mysql_status
+- name: "Ensure MySQL is started"
+  service: name=mysql state=started
+  when: helion is defined and test_mysql_status.rc != 0 and previous_upgrade_failed_restart_mysql is defined
+  ignore_errors: yes
+- name: "Checking to see if MySQL is working"
+  command: mysql --defaults-file=/mnt/state/root/metadata.my.cnf -N -e "SELECT 1"
+  when: helion is defined and test_mysql_status.rc != 0 and previous_upgrade_failed_restart_mysql is defined
+  ignore_errors: yes
+  register: test_mysql_status
+- name: "Bootstrap MySQL if MySQL was not running"
+  command: /etc/init.d/mysql bootstrap-pxc
+  when: helion is defined and test_mysql_status.rc != 0 and previous_upgrade_failed_restart_mysql is defined
