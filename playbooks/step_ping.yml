@@ -1,0 +1,7 @@
+---
+- name: "Test Connectivity to all hosts"
+  hosts: all
+  serial: 1
+  tasks:
+    ping:
+    where: instance_status == "ACTIVE"
