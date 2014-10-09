@@ -70,6 +70,7 @@ overcloud_controller_services:
   - snmpd
   - rsync
 helion_overcloud_controller_services:
+  - cron
   - apache2
   - beaver
   - cinder-api
@@ -87,6 +88,7 @@ helion_overcloud_controller_services:
   - neutron-l3-agent
   - neutron-metadata-agent
   - neutron-server
+  - neutron-openvswitch-agent
   - nova-api
   - nova-cert
   - nova-conductor
@@ -97,7 +99,9 @@ helion_overcloud_controller_services:
   - snmpd
   - rsync
   - stunnel
+  - rsyslog
 helion_overcloudmgmt_controller_services:
+  - cron
   - apache2
   - beaver
   - ceilometer-api
@@ -122,23 +126,30 @@ helion_overcloudmgmt_controller_services:
   - swift-proxy
   - cinder-scheduler
   - nova-scheduler
+  - nova-cert
   - nova-conductor
+  - nova-consoleauth
   - nova-novncproxy
   - neutron-l3-agent
   - neutron-metadata-agent
   - neutron-dhcp-agent
+  - neutron-openvswitch-agent
   - stunnel
   - open-iscsi
+  - rsyslog
 # This overcloud compute list is for upstream openstack
 overcloud_compute_services:
   - nova-compute
   - neutron-openvswitch-agent
+  - neutron-metadata-agent
   - libvirt-bin
   - snmpd
 helion_overcloud_compute_services:
   - beaver
   - nova-compute
   - neutron-openvswitch-agent
+  - neutron-metadata-agent
+  - neutron-l3-agent
   - libvirt-bin
   - open-iscsi
 # This overcloud swift list is for upstream openstack
@@ -159,12 +170,14 @@ overcloud_swift_services:
   - swift-proxy
   - snmpd
 helion_overcloud_swift_services:
+  - beaver
   - swift-account
   - swift-account-auditor
   - swift-account-reaper
   - swift-account-replicator
   - swift-container
   - swift-container-auditor
+  - swift-container-reconciler
   - swift-container-replicator
   - swift-container-sync
   - swift-container-updater
@@ -174,6 +187,7 @@ helion_overcloud_swift_services:
   - swift-object-updater
   - swift-proxy
   - open-iscsi
+  - rsyslog
 # This undercloud list is derived from upstream openstack
 undercloud_services:
   - os-collect-config

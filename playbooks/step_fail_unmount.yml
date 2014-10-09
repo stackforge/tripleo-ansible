@@ -13,13 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- name: "Detach any loop devices in use"
+- name: "Collect Open File List"
   sudo: yes
-  shell: for loopdevice in `losetup -a| cut -d ':' -f 1`; do losetup --detach $loopdevice; done
-- name: "Remove any cinder volume mounts that may be present"
-  sudo: yes
-  shell: for CINDER_VOLUME in `dmsetup ls 2>/dev/null | cut -f 1 |grep 'cinder--volumes'`; do dmsetup remove $CINDER_VOLUME; done
-  ignore_errors: yes
-  register: test_cinder_volume_remove
-- include: step_fail_unmount.yml
-  when: instance_status == "ACTIVE" and test_cinder_volume_remove.rc != 0 
+  shell: lsof -n|grep /mnt
+- name: "Collect process list"
+  command: ps auxf
+- name: "Fail"
+  fail: msg="The ephemeral storage of this system failed to be cleaned up properly and processes or files are still in use.  The previous ansible play should have information to help troubleshoot this issue."

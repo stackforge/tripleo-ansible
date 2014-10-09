@@ -97,6 +97,8 @@
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_overcloudmgmt_controller_services
       when: helion is defined and instance_status == "ACTIVE" and item in existing_services
+    - include: stop_tgt.yml
+      when: instance_status == "ACTIVE"
 # Critically, we need to select a single node of the galera cluster to
 # be the 'last'. So controllerMgmt fits that bill for now. We will have
 # to select one to be the "special" node eventually, we can do that with
@@ -173,7 +175,7 @@
       when: instance_status == "ACTIVE"
     - include: cleanup_cinder_volumes.yml
       when: instance_status == "ACTIVE"
-    - include: remount-ro.yml
+    - include: step_unmount.yml
       when: instance_status == "ACTIVE"
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ undercloud_rebuild_image_id }}", when: instance_status != "REBUILD" }
     - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=TRIPLEO_HK_RESTORED delay=10
@@ -211,6 +213,8 @@
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
     - include: cleanup_cinder_volumes.yml
+      when: instance_status == "ACTIVE"
+    - include: step_unmount.yml
       when: instance_status == "ACTIVE"
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controllermgmt_rebuild_image_id }}", when: instance_status != "REBUILD" }
     - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=TRIPLEO_HK_RESTORED delay=10
@@ -261,6 +265,8 @@
       when: instance_status == "ACTIVE"
     - include: cleanup_cinder_volumes.yml
       when: instance_status == "ACTIVE"
+    - include: step_unmount.yml
+      when: instance_status == "ACTIVE"
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controller_rebuild_image_id }}", when: instance_status != "REBUILD" }
     - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=TRIPLEO_HK_RESTORED delay=10
       when: wait_for_hostkey is defined
@@ -286,7 +292,7 @@
       service: name=os-collect-config state=stopped
     - name: "Work around apache2 starting up at boot w/o config..."
       service: name=apache2 enabled=no state=stopped
-    - name: "Remove os-collect-config diable sentinel file"
+    - name: "Remove os-collect-config disable sentinel file"
       file: path=/mnt/state/disable-os-collect-config state=absent
     - name: "Run os-collect-config"
       command: os-collect-config --force --one
@@ -350,6 +356,8 @@
   tasks:
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
+    - include: step_unmount.yml
+      when: instance_status == "ACTIVE"
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ swift_storage_rebuild_image_id }}", when: instance_status != "REBUILD" }
     - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=TRIPLEO_HK_RESTORED delay=10
       when: wait_for_hostkey is defined
@@ -382,6 +390,8 @@
   tasks:
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
+    - include: step_unmount.yml
+      when: instance_status == "ACTIVE"
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ vsa_rebuild_image_id }}", when: instance_status != "REBUILD" }
     - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=TRIPLEO_HK_RESTORED delay=10
       when: wait_for_hostkey is defined
@@ -412,6 +422,8 @@
     - include: step_preserve_password_file.yml
       when: instance_status == "ACTIVE"
     - include: preserve_ssh_host_keys.yml
+      when: instance_status == "ACTIVE"
+    - include: step_unmount.yml
       when: instance_status == "ACTIVE"
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ nova_compute_rebuild_image_id }}", when: instance_status != "REBUILD" }
     - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=TRIPLEO_HK_RESTORED delay=10

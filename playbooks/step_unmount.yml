@@ -15,4 +15,8 @@
 ---
 - name: "Change /mnt to be a read-only mount-point"
   sudo: yes
-  command: mount -o remount,ro LABEL=ephemeral0 /mnt
+  command: umount /mnt
+  ignore_errors: True
+  register: test_remount
+- include: step_fail_unmount.yml
+  when: instance_status == "ACTIVE" and test_remount.rc != 0
