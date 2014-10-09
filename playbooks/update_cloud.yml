@@ -191,8 +191,10 @@
     - include: disable_os_collect_config.yml
     - service_facts:
       when: instance_status == "ACTIVE"
+    - include: step_reset_mnt_state_permissions.yml
     - include: start_mysql.yml
     - include: start_rabbitmq.yml
+    - service: name=os-collect-config state=started
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_undercloud_services
       when: helion is defined and item in existing_services
