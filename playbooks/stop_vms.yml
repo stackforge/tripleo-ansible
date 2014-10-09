@@ -23,5 +23,5 @@
   sudo: yes
   virt: state=shutdown name={{item}}
   with_items: virtual_machines.list_vms
-- name: Pausing for 30 seconds to give VMs time to stop.
-  pause: seconds=30
+- name: Pausing for 60 seconds to give VMs time to stop.
+  pause: seconds=60
