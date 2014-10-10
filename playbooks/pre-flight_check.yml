@@ -88,20 +88,6 @@
       when: helion is not defined and wsrep_local_state.stdout != "4"
     - fail: msg="Galera cluster size is being reported as a single node.  The cluster is in an unsafe, possibly split brain state."
       when: helion is not defined and wsrep_cluster_size.stdout == "1"
-    - name: "Querying MySQL to determine Galera cluster status"
-      sudo: yes
-      shell: mysql --defaults-file=/mnt/state/root/metadata.my.cnf --socket /var/run/mysqld/mysqld.sock -N -e "SHOW STATUS LIKE 'wsrep_local_state'"|cut -f2
-      when: helion is not defined
-      register: wsrep_local_state
-    - name: "Querying MySQL to determine Galera cluster size"
-      sudo: yes
-      shell: mysql --defaults-file=/mnt/state/root/metadata.my.cnf --socket /var/run/mysqld/mysqld.sock -N -e "SHOW STATUS LIKE 'wsrep_cluster_size'"|cut -f2
-      when: helion is not defined
-      register: wsrep_cluster_size
-    - fail: msg="Galera wsrep_local_state is not indicating a healthy state, cluster node may be out of sync, manual intervention required."
-      when: helion is not defined and wsrep_local_state.stdout != "4"
-    - fail: msg="Galera cluster size is being reported as a single node.  The cluster is in an unsafe, possibly split brain state."
-      when: helion is not defined and wsrep_cluster_size.stdout == "1"
     # Helion
     - name: "Querying MySQL to determine Galera cluster status - Helion"
       sudo: yes
@@ -117,19 +103,3 @@
       when: helion is defined and wsrep_local_state.stdout != "4"
     - fail: msg="Galera cluster size is being reported as a single node.  The cluster is in an unsafe, possibly split brain state."
       when: helion is defined and wsrep_cluster_size.stdout == "1"
-    - name: "Querying MySQL to determine Galera cluster status - Helion"
-      sudo: yes
-      shell: mysql --defaults-file=/mnt/state/root/metadata.my.cnf -N -e "SHOW STATUS LIKE 'wsrep_local_state'"|cut -f2
-      when: helion is defined
-      register: wsrep_local_state
-    - name: "Querying MySQL to determine Galera cluster size - Helion"
-      sudo: yes
-      shell: mysql --defaults-file=/mnt/state/root/metadata.my.cnf -N -e "SHOW STATUS LIKE 'wsrep_cluster_size'"|cut -f2
-      when: helion is defined
-      register: wsrep_cluster_size
-    - fail: msg="Galera wsrep_local_state is not indicating a healthy state, cluster node may be out of sync, manual intervention required."
-      when: helion is defined and wsrep_local_state.stdout != "4"
-    - fail: msg="Galera cluster size is being reported as a single node.  The cluster is in an unsafe, possibly split brain state."
-      when: helion is defined and wsrep_cluster_size.stdout == "1"
-
-
