@@ -1,0 +1,7 @@
+#!/bin/bash
+set -eux
+# Execute from the tripleo-ansible folder
+ansible $(heat output-show overcloud controller0IP|sed s/\"//g) -s -u heat-admin -m fetch -a "dest=/root/oc-stackrc src=/root/stackrc flat=yes" -i plugins/inventory/heat.py
+cat /root/oc-stackrc | sed s/OS_/OC_OS_/ > /root/oc-stackrc-tripleo-ansible
+
+echo " ****  Before Proceeding, Execute: source /root/oc-stackrc-tripleo-ansible"
