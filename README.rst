@@ -190,3 +190,33 @@ file.
    before starting any jobs.
  * post_hook_command - Similar to the pre_hook_command variable, when
    defined, will execute upon the completion of the upgrade job.
+ * previous_upgrade_failed_restart_mysql - This option enables logic to restart
+   MySQL in the event it is not running on the controllerMgmt node, likely from
+   a failed upgrade.
+
+Nova Powercontrol
+-----------------
+
+A module named nova_powercontrol has been included which is intended to utilize
+nova for all instance power control operations.  This utility module also records
+the previous state of the instance and has a special flag which allows the user
+to resume or restart all virtual machines that are powered off/suspended upon the
+completion of the upgrade if the module is utilized to shut down the instances.
+
+To Use:
+
+From the tripleo-ansible folder, execute the command:
+
+    bash scripts/retrieve_oc_vars
+
+The script will then inform you of a file you need to source into your current
+user environment, it will contain the overcloud API credentials utilizing modified
+variable names which the playbook knows how to utilize.
+
+    source /root/oc-stackrc-tripleo-ansible
+
+Now that the environment variables are present, add the following to the
+ansible-playbook command line for the playbooks to utilize the nova_powercontrol
+module:
+
+    -e use_nova_powercontrol=True 

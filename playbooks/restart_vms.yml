@@ -12,20 +12,6 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-- name: Ensure libvirt-bin is running
-  sudo: yes
-  service: name=libvirt-bin state=started enabled=yes
-  when: use_nova_powercontrol is not defined
-- name: Collect list of VMs
-  sudo: yes
-  virt: command=list_vms
-  register: virtual_machines
-  when: use_nova_powercontrol is not defined
-- name: Issue graceful shutdowns
-  sudo: yes
-  virt: state=shutdown name={{item}}
-  when: use_nova_powercontrol is not defined
-  with_items: virtual_machines.list_vms
 - name: Tell the cloud to shutdown via nova_powercontrol.
   nova_powercontrol:
     login_username:  "{{ lookup('env',OC_OS_USERNAME'}}"
@@ -33,7 +19,5 @@
     login_tenant_name:  "{{ lookup('env',OC_OS_TENANT_NAME'}}"
     auth_url: "{{ lookup('env',OC_OS_AUTH_URL'}}"
     all_instances: yes
-    state: stopped
+    state: previous
   when: use_nova_powercontrol is defined
-- name: Pausing for 60 seconds to give VMs time to stop.
-  pause: seconds=60
