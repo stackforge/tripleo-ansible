@@ -47,7 +47,7 @@ opts = [
     cfg.StrOpt('username'),
     cfg.StrOpt('password'),
     cfg.StrOpt('auth-url'),
-    cfg.StrOpt('project-id'),
+    cfg.StrOpt('project-name'),
     cfg.StrOpt('group-regex'),
 ]
 
@@ -87,9 +87,9 @@ def _parse_config():
     if configs.password is None:
         if "OS_PASSWORD" in os.environ:
             configs.password = os.environ.get('OS_PASSWORD')
-    if configs.project_id is None:
+    if configs.project_name is None:
         if "OS_TENANT_NAME" in os.environ:
-            configs.project_id = os.environ.get('OS_TENANT_NAME')
+            configs.project_name = os.environ.get('OS_TENANT_NAME')
     if '/v2.0' in configs.auth_url:
         configs.auth_url = configs.auth_url.replace('/v2.0', '/v3')
     return configs
@@ -209,7 +209,8 @@ class HeatInventory(object):
             self._ksclient = keystone_client.Client(
                 auth_url=self.configs.auth_url,
                 username=self.configs.username,
-                password=self.configs.password)
+                password=self.configs.password,
+                project_name=self.configs.project_name)
             self._ksclient.authenticate()
         return self._ksclient
 
@@ -234,7 +235,6 @@ class HeatInventory(object):
                 bypass_url=endpoint,
                 username=None,
                 api_key=None,
-                project_id=self.configs.project_id,
                 auth_url=self.configs.auth_url,
                 auth_token=ksclient.auth_token)
         return self._nclient
