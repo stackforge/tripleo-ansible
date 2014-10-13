@@ -331,6 +331,7 @@
   sudo: yes
   max_fail_percentage: 0
   tasks:
+    - service: name=os-collect-config state=started
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started
@@ -341,6 +342,7 @@
   sudo: yes
   max_fail_percentage: 0
   tasks:
+    - service: name=os-collect-config state=started
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started
@@ -375,6 +377,7 @@
     - name: "Run os-collect-config"
       sudo: yes
       command: os-collect-config --force --one
+    - service: name=os-collect-config state=started
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started
@@ -409,6 +412,7 @@
     - name: "Run os-collect-config"
       sudo: yes
       command: os-collect-config --force --one
+    - service: name=os-collect-config state=started
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started
@@ -442,6 +446,7 @@
     - name: "Run os-collect-config"
       sudo: yes
       command: os-collect-config --force --one
+    - service: name=os-collect-config state=started
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started
