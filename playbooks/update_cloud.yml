@@ -282,6 +282,14 @@
       when: instance_status == "ACTIVE"
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
+    - include: step_stop_services.yml
+      vars:
+          services_to_stop: "{{ overcloud_controller_services }}"
+      when: instance_status == "ACTIVE" and helion is not defined
+    - include: step_stop_services.yml
+      vars:
+          services_to_stop: "{{ helion_overcloud_controller_services }}"
+      when: instance_status == "ACTIVE" and helion is defined
     - include: cleanup_cinder_volumes.yml
       when: instance_status == "ACTIVE"
     - include: step_unmount.yml
