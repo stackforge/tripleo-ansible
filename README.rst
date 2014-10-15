@@ -51,6 +51,23 @@ An ``ansible.cfg`` file is provided. If you have a systemwide
 (/etc/ansible/ansible.conf) or user-specific ( ~/.ansible.cfg) Ansible
 config file, then Ansible will not utilize the provided configuration file.
 
+Setting the OS Environment
+--------------------------
+
+Several initial actions must be taken in order to utilize this toolset:
+
+ 1) You must load the necessary libraries and environment.  If you're using an
+    instance that was built with the ansible diskimage-builder element, then
+    you should be able to `source /opt/stack/venvs/ansible/bin/activate`.
+    Otherwise you will need to follow the ansible installation instructions at:
+    http://docs.ansible.com/intro_installation.html
+
+ 2) If a copy of the tripleo-ansible respository was loaded in as a
+    diskimage-builder element to /opt/stack/tripleo-ansible, then you will not
+    need to install the toolset dependencies unless you update the toolset's
+    contents from a package or source control.  In that case, execute:
+    `cd /opt/stack/tripleo-ansible; pip install .`
+
 Pre-flight check
 ----------------
 
