@@ -1,0 +1,8 @@
+Verified+2: Jenkins
+Code-Review+2: Clint 'SpamapS' Byrum <clint@ubuntu.com>
+Workflow+1: Clint 'SpamapS' Byrum <clint@ubuntu.com>
+Submitted-by: Jenkins
+Submitted-at: Wed, 15 Oct 2014 04:38:29 +0000
+Reviewed-on: https://review.openstack.org/128512
+Project: stackforge/tripleo-ansible
+Branch: refs/heads/master
