@@ -345,7 +345,7 @@ Instance reported with status == "SHUTOFF" and task_state == "powering on"
 ==========================================================================
 
 If nova attempts to restart an instance when the compute node is not ready,
-it is possible that nova could entered a confused state where it thinks that
+it is possible that nova could enter a state where it thinks that
 an instance is starting when in fact the compute node is doing nothing.
 
   * Symptoms:
@@ -371,7 +371,7 @@ an instance is starting when in fact the compute node is doing nothing.
       `os-collect-config --force --one`
 
     * Return to the controller node that you were logged into previously, and
-      using the instancce IDs obtained previously, take the following steps.
+      using the instance IDs obtained previously, take the following steps.
 
       * Execute `nova reset-state --active <instance-id>`
 
@@ -576,3 +576,4 @@ can be recovered utilizing a traditional rebuild.
 
       * Additionally, you may need to utilize the "-e force_rebuild=True" option
         to force the instance to rebuild.
+=======

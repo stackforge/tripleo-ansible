@@ -28,7 +28,7 @@ disk image elements:
  * ansible
  * tripleo-ansible
 
-Systems that the playbooks are brining up should ideally have the following
+Systems that the playbooks are bringing up should ideally have the following
 disk image elements:
 
  * restore-ssh-host-keys
@@ -51,6 +51,23 @@ An ``ansible.cfg`` file is provided. If you have a systemwide
 (/etc/ansible/ansible.conf) or user-specific ( ~/.ansible.cfg) Ansible
 config file, then Ansible will not utilize the provided configuration file.
 
+Setting the OS Environment
+--------------------------
+
+Several initial actions must be taken in order to utilize this toolset:
+
+ 1) You must load the necessary libraries and environment.  If you're using an
+    instance that was built with the ansible diskimage-builder element, then
+    you should be able to `source /opt/stack/venvs/ansible/bin/activate`.
+    Otherwise you will need to follow the ansible installation instructions at:
+    http://docs.ansible.com/intro_installation.html
+
+ 2) If a copy of the tripleo-ansible respository was loaded in as a
+    diskimage-builder element to /opt/stack/tripleo-ansible, then you will not
+    need to install the toolset dependencies unless you update the toolset's
+    contents from a package or source control.  In that case, execute:
+    `cd /opt/stack/tripleo-ansible; pip install .`
+
 Pre-flight check
 ----------------
 
@@ -58,7 +75,7 @@ A playbook exists that can be used to check the controllers prior to the
 execution of the main playbook in order to quickly identify any issues in
 advance.
 
-All controller nodes must be in a healty state (ACTIVE) for the pre flight
+All controller nodes must be in a healthy state (ACTIVE) for the pre flight
 checks to pass. We **CANNOT** proceed with an update if a controller node is
 down.
 
@@ -275,5 +292,4 @@ Now that the environment variables are present, add the following to the
 ansible-playbook command line for the playbooks to utilize the nova_powercontrol
 module:
 
-    -e use_nova_powercontrol=True 
-
+    -e use_nova_powercontrol=True
