@@ -170,3 +170,18 @@ file.
  * ssh_timeout - This value, defaulted to 900 [seconds], is the maximum
    amount of time that the post-rebuild ssh connection test will wait for
    before proceeding.
+ * online_upgrade - This setting tells the script to attempt an online upgrade
+   of the node.  At present this is only known to work on compute nodes.
+
+Online Upgrade
+--------------
+
+When an upgrade *does not* require a kernel update, the Online Upgrade feature
+can be utilized to upgrade compute nodes while leaving their virtual machines
+in a running state.  The result is a short one to two minute loss of network
+connectivity for the virutal machines as as os-refresh-config stops and
+restarts key services which causes the loss in network connectivity.
+
+This operation is performed by uploading the new image to the /tmp folder on
+the node, syncing file contents over while preserving key files, and then
+restarting services.  This is only known to work on compute nodes.

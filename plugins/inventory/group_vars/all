@@ -14,7 +14,7 @@
 ---
 wait_for: 200
 key_name: ansible_key
-#helion: True
+helion: True
 #force_rebuild: True
 wait_for_hostkey: True
 # This overcloud controller list is for upstream openstack
@@ -22,6 +22,7 @@ wait_for_hostkey: True
 # This option adjusts logic to enable single controllers to be upgraded
 # instead of the entire controller cluster.
 ssh_timeout: 900
+default_update_file_location: /tmp/update_image.qcow2
 overcloud_controller_services:
   - haproxy
   - apache2
@@ -197,6 +198,8 @@ undercloud_services:
   - heat-api-cfn
   - heat-api-cloudwatch
   - heat-engine
+  - eon-api
+  - eon-conductor
   - ironic-api
   - nova-api
   - keystone

@@ -20,6 +20,10 @@
 - name: "Disable os-collect-config service"
   sudo: yes
   service: name=os-collect-config enabled=no state=stopped
+- name: "Ensure os-collect-config local-data folder is present"
+  sudo: yes
+  file: path=/var/lib/os-collect-config/local-data state=directory owner=root group=root mode=0700
+  when: online_upgrade is defined
 - name: "Reconfigure os-collect-config for local collector"
   sudo: yes
   copy:

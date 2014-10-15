@@ -1,0 +1,191 @@
+# Copyright (c) 2014 Hewlett-Packard Development Company, L.P.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+- name: "Fail upgrade if node status is not ACTIVE"
+  fail: "Failure: Node MUST be in ACTIVE state to proceed.  Online upgrade cannot be completed, please consider a standard image rebuild upgrade."
+  when: instance_status != "ACTIVE"
+- name: "Setting default policy to run upgrade"
+  set_fact: test_run_upgrade=true
+- name: "Compare, if applicable, the currently deployed image id"
+  command: grep -q "{{ rebuild_image_id }}" /etc/tripleo_image_id
+  when: force_rebuild is not defined
+  register: test_check_version
+  ignore_errors: yes
+- name: "Set action to false if rebuild is not being forced and currently deployed version matches what is being deployed"
+  set_fact: test_run_upgrade=false
+  when: force_rebuild is not defined and test_check_version.rc == 0
+- name: "Ensure qemu-utils and rsync is installed"
+  sudo: yes
+  # This will require gather_facts to have logic at some point to
+  # support operating systems that do not use apt.
+  apt: pkg={{ item }} state=present
+  with_items:
+    - qemu-utils
+    - rsync
+  when: test_run_upgrade == "true"
+- name: "Load nbd kernel module"
+  sudo: yes
+  modprobe:
+    name: nbd
+    state: present
+    params: "max_part=16"
+  when: test_run_upgrade == "true"
+- name: "Triggering upload of image to node"
+  sudo: yes
+  include: step_upload_image.yml
+  vars:
+      update_image: "/tmp/image-{{ rebuild_image_id }}.qcow2"
+  when: online_upgrade is defined and test_run_upgrade == "true"
+- name: "Creating directory for update to run from on node"
+  sudo: yes
+  file:
+    path: /tmp/update_image
+    state: directory
+  when: test_run_upgrade == "true"
+- name: "Ensuring that the mountpoint is not already mounted"
+  sudo: yes
+  command: umount /tmp/update_image
+  ignore_errors: yes
+  when: test_run_upgrade == "true"
+- name: "Ensuring that the image is not already attached"
+  sudo: yes
+  command: /usr/bin/qemu-nbd -d /dev/nbd4
+  ignore_errors: yes
+  when: test_run_upgrade == "true"
+- name: "Attaching update image"
+  sudo: yes
+  command: /usr/bin/qemu-nbd -c /dev/nbd4 "{{ default_update_file_location }}"
+  when: test_run_upgrade == "true"
+- name: "Preserving ssh keys in case online upgrade fails and full rebuild is required to recover"
+  include: preserve_ssh_host_keys.yml
+  when: online_upgrade is defined and test_run_upgrade == "true"
+- name: "Ensure that a previous online upgrade folder does not exist"
+  sudo: yes
+  file: path=/mnt/state/_upgrade_recovery state=absent
+  when: test_run_upgrade == "true"
+- name: "Make an upgrade recovery folder on the ephemeral disk"
+  sudo: yes
+  file: path=/mnt/state/_upgrade_recovery state=directory owner=root group=root mode=0700
+  when: test_run_upgrade == "true"
+- name: "Backup /etc to /mnt/state/_upgrade_recovery"
+  sudo: yes
+  shell: cp -a /etc /mnt/state/_upgrade_recovery/
+- name: "Backup /var/log to /mnt/state/_upgrade_recovery"
+  sudo: yes
+  shell: mkdir /mnt/state/_upgrade_recovery/var ; cp -a /var/log /mnt/state/_upgrade_recovery/var/
+- name: "Attaching image to mount point"
+  sudo: yes
+  command: mount /dev/nbd4 /tmp/update_image
+  when: test_run_upgrade == "true"
+# The next several steps, are intended as a feature to prevent an
+# image from being utilized in this fashion that is is known to be
+# incompatible. I.E. Incompatible base library changes that would
+# normally result in a system being left in a damaged state.
+- name: "Verify that the disk image does not contain a warning flag"
+  shell: test -x /tmp/update_image/boot/tripleo_incompatible_upgrade
+  when: test_run_upgrade == "true"
+  register: test_abort_incompatible
+  ignore_errors: yes
+- name: "If aborting, detach update image mountpoint"
+  sudo: yes
+  command: umount /tmp/update_image
+  when: test_run_upgrade == "true" and test_abort_incompatible.rc == 0
+- name: "If aborting, detach image"
+  sudo: yes
+  command: /usr/bin/qemu-nbd -d /dev/nbd4
+  when: test_run_upgrade == "true" and test_abort_incompatible.rc == 0
+- name: "If aborting, fail."
+  fail: "Image is marked as being incompatible for online upgrades.  Please attempt a normal upgrade."
+  when: test_run_upgrade == "true" and test_abort_incompatible.rc == 0
+- name: "Ensure folder exists for rsync log to be housed"
+  sudo: yes
+  file: path=/mnt/state/var/log/online_upgrade state=directory owner=root group=root mode=0700
+  when: test_run_upgrade == "true"
+- name: "Pre-flight check that we appear to have an image mounted"
+  shell: test -e /tmp/update_image/boot
+  when: test_run_upgrade == "true"
+  register: test_is_update_image
+  ignore_errors:  yes
+- name: "Fail if image does not appear to be valid"
+  fail: "ERROR: Upgrade image did not mount, or is not valid."
+  when: test_run_upgrade == "true" and test_is_update_image.rc != 0
+- name: "Initiating update of files, this may take a while."
+  sudo: yes
+  # The following list of files excluded are to ensure a access by Ansible
+  # and continuation of existing processes with minimal impact.
+  #  * /tmp - Excluded as this is the source folder
+  #  * /etc/hosts - Excluded as it is normally populated with host information
+  #    by os-collect-config, and being in a reverted state causes latency while
+  #    the host is attempting to resolve the IP address of the node connecting.
+  #  * /etc/ssh/ssh_host_* - This is to preserve the ssh host keys so Ansible
+  #    is able to reconnect.
+  #  * /etc/passwd /etc/shadow /etc/group - These are preserved so Ansible
+  #    is able to log back into the system after the system after the sync
+  #    has been completed as the heat-admin user is not bured into the image.
+  #  * /home/heat-admin - Same case as above.
+  #  * /mnt - Excluded as it is the ephemeral volume mount point.
+  #  * /var/log - Excluded to preserve logs.
+  #  * /lib/modules/$(uname -r) - The current running kernel's modules, which
+  #    need to be kept on disk until a kernel upgrade takes place.
+  #  * /var/lib/heat-* /var/lib/os-collect-config /var/lib/cloud - These
+  #    folders are preserved in order to give the instance a head start on
+  #    starting back up.  Additionally /var/lib/cloud contains semaphor locks
+  #    tha tblock operations that would be unsafe to perform at the time of an
+  #    upgrade.
+  #  * /dev - Excluded as the image contains a basic /dev folder, but the host
+  #    operates with devfs.  Removal of files from devfs will result in
+  #    unpredictable behavior.
+  #    /var/cache/libvirt/qemu/capabilties /var/lib/libvirt - Removal of these
+  #    files will cause the current virutal machines to stop as they contain
+  #    state information.
+  #  * /var/lib/dhcpd/*.leases - Excluded as we want the DHCP client to attempt
+  #    a renewal instead of requesting a new address.
+  #  * /var/lib/openvswitch - Excluded as it contains the state information for
+  #    openvswitch and we want openvswitch to be running as long as possible
+  #    for minimal connectivity impact to the running virtual machines.
+  shell: rsync -axHAXv /tmp/update_image/ / --exclude=/tmp --exclude=/etc/hosts --exclude='/etc/ssh/ssh_host_*' --exclude=/etc/passwd --exclude=/etc/shadow --exclude=/etc/group --exclude=/etc/sudoers --exclude=/home/heat-admin --exclude=/mnt --exclude=/var/log --exclude="/lib/modules/$(uname -r)" --exclude='/var/lib/heat-*' --exclude='/dev/' --exclude='/var/cache/libvirt/qemu/capabilities' --exclude='/var/lib/os-collect-config' --exclude='/var/lib/cloud' --exclude='/var/lib/libvirt' --exclude='/var/lib/dhcp/*.leases' --exclude='/var/lib/openvswitch' --delete-after | tee -a /mnt/state/var/log/online_upgrade/rsync.log ; cp -at /etc/ssh/ /mnt/state/_ssh_host_keys/ssh_host_* ; cp -at /etc/ /mnt/state/_upgrade_recovery/etc/hosts /mnt/state/_upgrade_recovery/etc/mtab
+  when: test_run_upgrade == "true"
+- name: "Restart ssh service"
+  sudo: yes
+  service: name=ssh state=restarted
+  # Note: gather_facts will be required to support restartig on
+  # systems that use different names for their ssh services.
+  when: test_run_upgrade == "true"
+- name: "Detach update image mountpoint"
+  sudo: yes
+  command: umount /tmp/update_image
+  when: test_run_upgrade == "true"
+# bounce any core services like ssh TODO
+- name: "Remove the post-rsync folder"
+  sudo: yes
+  file:
+    path: /tmp/update_image
+    state: absent
+  when: test_run_upgrade == "true"
+- name: "Ensure qemu-utils is installed"
+  sudo: yes
+  # This will require gather_facts to have logic at some point to
+  # support operating systems that do not use apt.
+  apt: pkg={{ item }} state=present
+  with_items:
+    - qemu-utils
+  when: test_run_upgrade == "true"
+- name: "Detach Upgrade Image"
+  sudo: yes
+  command: /usr/bin/qemu-nbd -d /dev/nbd4
+  when: test_run_upgrade == "true"
+# NOTE: Should TripleO one day support booting from the local block
+# device, then this is roughly the locaion where support for updating
+# the boot loader would be added.
