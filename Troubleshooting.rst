@@ -140,3 +140,46 @@ There are certain system states that cause RabbitMQ to fail to die on normal kil
   * Solution:
 
     * Find any processes running as `rabbitmq` on the box, and kill them, forcibly if need be.
+
+
+Instance reported with status == "SHUTOFF" and task_state == "powering on"
+==========================================================================
+
+If nova atempts to restart an instance when the compute node is not ready,
+it is possible that nova could entered a confused state where it thinks that
+an instance is starting when in fact the compute node is doing nothing.
+
+  * Symptoms:
+
+    * Command `nova list --all-tenants` reports instance(s) with STATUS ==
+      "SHUTOFF" and task_state == "powering on".
+    * Instance cannot be pinged.
+    * No instance appears to be running on the compute node.
+    * Nova hangs upon retrieving logs or returns old logs from the previous
+      boot.
+    * Console session cannot be established.
+
+  * Solution:
+
+    * On a controller logged in as root, after executing `source stackrc`:
+
+      * Execute `nova list --all-tenants` to obtain instance ID(s)
+
+      * Execute `nova show <instance-id>` on each suspected ID to identify
+        suspected compute nodes.
+
+    * Log into the suspected compute node(s) and execute:
+      `os-collect-config --force --one`
+
+    * Return to the controller node that you were logged into previously, and
+      using the instancce IDs obtained previously, take the following steps.
+
+      * Execute `nova reset-state --active <instance-id>`
+
+      * Execute `nova stop <instance-id>`
+
+      * Execute `nova start <instance-id>`
+
+    * Once the above steps have been taken in order, you should see the
+      instance status return to ACTIVE and the instance become accessible
+      via the network.
