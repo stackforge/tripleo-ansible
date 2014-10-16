@@ -70,7 +70,7 @@
     - service: name={{ item }} enabled=no state=stopped
       with_items: helion_overcloud_vsa_services
       when: helion is defined and instance_status == "ACTIVE" and item in existing_services
-- hosts: controller
+- hosts: controller:!bootstrap_host
   name: Disable Overcloud Controller
   sudo: yes
   gather_facts: no
@@ -86,7 +86,7 @@
       when: helion is not defined and instance_status == "ACTIVE" and item in existing_services
     - include: stop_tgt.yml
       when: instance_status == "ACTIVE"
-- hosts: controllerMgmt
+- hosts: controllerMgmt:bootstrap_host
   name: Disable Overcloud Controller Mgmt node
   sudo: yes
   gather_facts: no
@@ -104,7 +104,7 @@
 # to select one to be the "special" node eventually, we can do that with
 # host facts and conditionals. The last to go down must have the
 # Galera bootstrap run on it, or none of them will come up.
-- hosts: controller
+- hosts: controller:!bootstrap_host
   name: Stop MySQL/RabbitMQ on controller nodes
   sudo: yes
   gather_facts: no
@@ -135,7 +135,7 @@
     - name: "Waiting for rabbitmq-server to stop"
       wait_for: port=5672 state=stopped timeout=60 delay=10
       when: instance_status == "ACTIVE"
-- hosts: controllerMgmt
+- hosts: controllerMgmt:bootstrap_host
   name: Stop MySQL/RabbitMQ on Overcloud Controller Mgmt node
   sudo: yes
   gather_facts: no
@@ -203,7 +203,7 @@
     - service: name={{ item }} enabled=yes state=started
       with_items: undercloud_services
       when: helion is not defined and item in existing_services
-- hosts: controllerMgmt
+- hosts: controllerMgmt:bootstrap_host
   name: Rebuild and Refresh ControllerMgmt
   gather_facts: no
   max_fail_percentage: 0
@@ -224,7 +224,7 @@
       when: wait_for_hostkey is not defined
       ignore_errors: yes
     - pause: seconds=30 prompt="Allowing controllerMgmt node to settle"
-- hosts: controllerMgmt
+- hosts: controllerMgmt:bootstrap_host
   name: Start initial cluster node
   max_fail_percentage: 0
   sudo: yes
@@ -254,7 +254,7 @@
       wait_for: port=5672 state=started timeout=90 delay=10
     - name: Restart os-collect-config
       service: name=os-collect-config state=started
-- hosts: controller
+- hosts: controller:!bootstrap_host
   name: Rebuild and Refresh Controller
   gather_facts: no
   max_fail_percentage: 0
@@ -275,7 +275,7 @@
       when: wait_for_hostkey is not defined
       ignore_errors: yes
     - pause: seconds=30 prompt="Allowing controller node to settle."
-- hosts: controller
+- hosts: controller:!bootstrap_host
   name: Stop and setup for controller refresh
   max_fail_percentage: 0
   sudo: yes
@@ -297,14 +297,14 @@
     - name: "Run os-collect-config"
       command: os-collect-config --force --one
     - include: start_mysql.yml
-- hosts: controller
+- hosts: controller:!bootstrap_host
   name: Initiate Database Creation
   max_fail_percentage: 0
   serial: 1
   sudo: yes
   tasks:
     - include: step_create_databases.yml
-- hosts: controller
+- hosts: controller:!bootstrap_host
   name: Complete Controller Refresh
   max_fail_percentage: 0
   sudo: yes
@@ -326,7 +326,7 @@
       command: rabbitmqctl cluster_status
       when: single_controller is not defined
     - include: cleanup_rabbitmq_start.yml
-- hosts: controllerMgmt
+- hosts: controllerMgmt:bootstrap_host
   name: Enable Overcloud ControllerMgmt
   sudo: yes
   max_fail_percentage: 0
@@ -337,7 +337,7 @@
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_overcloudmgmt_controller_service
       when: helion is defined and item in existing_services
-- hosts: controller
+- hosts: controller:!bootstrap_host
   name: Enable Overcloud Controller
   sudo: yes
   max_fail_percentage: 0
