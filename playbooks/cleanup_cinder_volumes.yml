@@ -13,13 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- name: "Detach any loop devices in use"
-  sudo: yes
-  shell: for loopdevice in `losetup -a| cut -d ':' -f 1`; do losetup --detach $loopdevice; done
 - name: "Remove any cinder volume mounts that may be present"
   sudo: yes
-  shell: for CINDER_VOLUME in `dmsetup ls 2>/dev/null | cut -f 1 |grep 'cinder--volumes'`; do dmsetup remove $CINDER_VOLUME; done
+  script: files/cleanup_cinder_devices.sh
+  register: test_cinder_cleanup
   ignore_errors: yes
-  register: test_cinder_volume_remove
+- name: "If cinder cleanup failed, collect volume group data"
+  command: vgdisplay -v
+  when: instance_status == "ACTIVE" and test_cinder_cleanup.rc != 0
 - include: step_fail_unmount.yml
-  when: instance_status == "ACTIVE" and test_cinder_volume_remove.rc != 0 
+  when: instance_status == "ACTIVE" and test_cinder_cleanup.rc != 0
+- name: "Detach any loop devices in use"
+  sudo: yes
+  script: files/cleanup_loop_devices.sh
+  register: test_loop_device_cleanup
+- name: "Collect list of loop devices"
+  sudo: yes
+  command: losetup -a
+  ignore_errors: yes
+  when: test_loop_device_cleanup.rc != 0
+- include: step_fail_unmount.yml
+  when: instance_status == "ACTIVE" and test_loop_device_cleanup.rc != 0 
