@@ -194,7 +194,10 @@
     - include: disable_os_collect_config.yml
     - service_facts:
       when: instance_status == "ACTIVE"
+    - include: stop_mysql.yml
     - include: step_reset_mnt_state_permissions.yml
+    # Directly call os-apply-config to write out configuration files.
+    - include: step_os-apply-config.yml
     - include: start_mysql.yml
     - include: start_rabbitmq.yml
     - service: name=os-collect-config state=started
@@ -243,6 +246,8 @@
     - name: "Run os-collect-config"
       command: os-collect-config --force --one
     - include: step_reset_mnt_state_permissions.yml
+    # Directly call os-apply-config to write out configuration files.
+    - include: step_os-apply-config.yml
     - name: Bootstrap the MySQL cluster
       command: /etc/init.d/mysql bootstrap-pxc
       when: single_controller is not defined
@@ -297,6 +302,9 @@
       file: path=/mnt/state/disable-os-collect-config state=absent
     - name: "Run os-collect-config"
       command: os-collect-config --force --one
+    # Directly call os-apply-config to write out configuration files in case
+    # os-collect-config has failed to reach that step.
+    - include: step_os-apply-config.yml
     - include: start_mysql.yml
 - hosts: controller
   name: Initiate Database Creation

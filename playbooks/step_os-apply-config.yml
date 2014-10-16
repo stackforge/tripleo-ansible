@@ -12,5 +12,6 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-- service: name=mysql state=stopped enabled=no
+- name: "Initiate os-apply-config"
+  command: os-collect-config --force --one --command=os-apply-config
   ignore_errors: yes
