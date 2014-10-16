@@ -108,7 +108,6 @@
   name: Stop MySQL/RabbitMQ on controller nodes
   sudo: yes
   gather_facts: no
-  max_fail_percentage: 0
   serial: 1
   tasks:
     - include: galera_status.yml
@@ -299,7 +298,6 @@
     - include: start_mysql.yml
 - hosts: controller:!bootstrap_host
   name: Initiate Database Creation
-  max_fail_percentage: 0
   serial: 1
   sudo: yes
   tasks:
