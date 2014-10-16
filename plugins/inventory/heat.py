@@ -163,12 +163,21 @@ class HeatInventory(object):
                             groups[group_name].append(addr)
                         else:
                             groups[group_name] = [addr]
+                    hm = self.hclient.resources.metadata(stack_id,
+                                                         res.resource_name)
                     hostvars[addr] = {
-                        'heat_metadata': self.hclient.resources.metadata(
-                            stack_id,
-                            res.resource_name
-                        )
+                        'heat_metadata': hm
                     }
+
+                    # Build bootstrap_host group
+                    bh = [d['config']['bootstrap_host']
+                            for d in hm['deployments']
+                            if 'bootstrap_host' in d['config']]
+                    if len(bh) == 1 and \
+                            bh[0]['bootstrap_nodeid'] == bh[0]['nodeid']:
+                        bh_mem = groups.get('bootstrap_host', [])
+                        groups['bootstrap_host'] = bh_mem + [addr]
+
                     hostvars[addr]['instance_status'] = server.status
                     hostvars[addr]['instance_image_id'] = server.image['id']
                     hostvars[addr]['instance_id'] = res.physical_resource_id
