@@ -200,6 +200,9 @@
     - include: step_os-apply-config.yml
     - include: start_mysql.yml
     - include: start_rabbitmq.yml
+    # Fix Ironic Reservations due to bug:
+    # https://bugs.launchpad.net/ironic/+bug/1382698
+    - include: step_undercloud_ironic_release_reservations.yml
     - name: "Run os-collect-config"
       command: os-collect-config --force --one
     - service: name=os-collect-config state=started
