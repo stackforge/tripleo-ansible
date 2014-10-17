@@ -166,7 +166,9 @@ file.
  * single_controller - This option is for when a single controller node is
    receiving an upgrade.  It alters the logic so that mysql checks operate
    as if the mysql database cluster is being maintained online by other
-   controller nodes during the upgrade.
+   controller nodes during the upgrade. *IF* you are looking at this option
+   due to an error indicating "Node appears to be the last node in a cluster"
+   then consult Troubleshooting.rst.
  * ssh_timeout - This value, defaulted to 900 [seconds], is the maximum
    amount of time that the post-rebuild ssh connection test will wait for
    before proceeding.

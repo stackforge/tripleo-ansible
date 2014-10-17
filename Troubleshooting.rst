@@ -89,6 +89,29 @@ complement of servers before updates can be performed safely.
 
       sudo /etc/init.d/mysql bootstrap-pxc
 
+MysQL "Node appears to be the last node in a cluster" error
+===========================================================
+
+This error occurs when one of the controller nodes does not have MySQL running.
+The playbook has detected that the current node is the last running node,
+although based on sequence it should not be the last node.  As a result the
+error is thrown and update aborted.
+
+  * Symptoms:
+
+    * Update Failed with error message "Galera Replication - Node appears to be the last node in a cluster - cannot safely proceed unless overriden via single_controller setting - See README.rst"
+
+  * Actions:
+
+    * Run the pre-flight_check.yml playbook.  It will atempt to restart MySQL
+      on each node in the "Ensuring MySQL is running -" step.  If that step
+      succeeeds, you should be able to re-run the playbook and not encounter
+      "Node appears to be last node in a cluster" error.
+
+    * IF pre-flight_check fails to restart MySQL, you will need to consult the
+      MySQL logs (/var/log/mysql/error.log) to determine why the other nodes
+      are not restarting.
+
 Postfix fails to reload
 =======================
 
