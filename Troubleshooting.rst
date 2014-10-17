@@ -41,6 +41,15 @@ single MySQL controller was operational, MySQL will fail to start upon retrying.
 
     * Update automatically aborts.
 
+  * *WARNING*:
+
+    * The command `/etc/init.d/mysql bootstrap-pxc` which is mentioned below
+      should only ever be executed when an entire MySQL cluster is down, and
+      then only on the last node to have been shut down.  Running this command
+      on multiple nodes will cause the MySQL cluster to enter a split brain
+      scenario effectively breaking the cluster which will result in
+      unpredictable behavior.
+
   * Solution:
 
     * Use `nova list` to determine the IP of the congtrollerMgmt node, then ssh into it::
@@ -51,9 +60,16 @@ single MySQL controller was operational, MySQL will fail to start upon retrying.
 
       sudo mysql -e "SELECT 1"
 
+    * Attempt to restart MySQL in case another cluster node is online.
+      This should fail in this error state, however if it succeeds your
+      cluster should again be operational and the next step can be skipped.::
+
+      sudo /etc/init.d/mysql start
+
     * Start MySQL back up in single node bootstrap mode::
 
       sudo /etc/init.d/mysql bootstrap-pxc
+
 
 MySQL/Percona/Galera is out of sync
 ===================================
@@ -85,9 +101,37 @@ complement of servers before updates can be performed safely.
 
       sudo mysql -e "SELECT 1"
 
-    * Start it back up in single node bootstrap mode::
+    * Start controllerMgmt0 MySQL back up in single node bootstrap mode::
 
       sudo /etc/init.d/mysql bootstrap-pxc
+
+    * On the remaining controller nodes obseved to be having issues, utilize
+      the IP address via `nova list` and login to them.::
+
+      ssh heat-admin@$IP
+
+     * Verify replication is out of sync::
+
+      sudo mysql -e "SHOW STATUS like 'wsrep_%'"
+
+    * Stop mysql::
+
+      sudo /etc/init.d/mysql stop
+
+    * Verify it is down by running the mysql client as root. It _should_ fail::
+
+      sudo mysql -e "SELECT 1"
+
+    * Start MySQL back up so it attempts to connect to controllerMgmt0::
+
+      sudo /etc/init.d/mysql start
+
+    * If restarting MySQL fails, then the database is most certainly out of sync
+      and the MySQL error logs, located at /var/log/mysql/error.log, will need
+      to be consulted.  In this case, never attempt to restart MySQL with
+      `sudo /etc/init.d/mysql bootstrap-pxc` as it will bootstrap the host
+      as a single node cluster thus worsening what already appears to be a
+      split-brain scenario.
 
 MysQL "Node appears to be the last node in a cluster" error
 ===========================================================
