@@ -199,6 +199,64 @@ error is thrown and update aborted.
       MySQL logs (/var/log/mysql/error.log) to determine why the other nodes
       are not restarting.
 
+SSH Connectivity is lost
+========================
+
+Ansible uses SSH to communicate with remote nodes. In heavily loaded, single
+host virtualized environments, SSH can lose connectivity.  It should be noted
+that similar issues in a physical environment may indicate issues in the
+underlying network infrasucture.
+
+  * Symptoms:
+
+    * Ansible update attempt fails.
+
+    * Error output::
+
+      fatal: [192.0.2.25] => SSH encountered an unknown error. The output was:
+      OpenSSH_6.6.1, OpenSSL 1.0.1i-dev xx XXX xxxx
+      debug1: Reading configuration data /etc/ssh/ssh_config
+      debug1: /etc/ssh/ssh_config line 19: Applying options for *
+      debug1: auto-mux: Trying existing master
+      debug2: fd 3 setting O_NONBLOCK
+      mux_client_hello_exchange: write packet: Broken pipe
+      FATAL: all hosts have already failed – aborting
+
+  * Solution:
+
+    * You will generally be able to re-run the playbook and complete the
+      upgrade, unless SSH connectivity is lost while all MySQL nodes are
+      down. (See 'MySQL fails to start upon retrying update' to correct
+      this issue.)
+
+    * Early Ubuntu Trusty kernel versions have known issues with KVM which
+      will severely impact SSH connectivity to instances. Test hosts should
+      have a minimum kernel version of 3.13.0-36-generic.
+      The update steps, as root, are::
+
+        apt-get update
+        apt-get dist-upgrade
+        reboot
+
+    * If this issue is repeatedly encountered on a physical environment, the
+      network infrastucture should be inspected for errors.
+
+    * Similar error messages to the error noted in the Symptom may occur with
+      long running processes, such as database creation/upgrade steps.  These
+      cases will generally have partial program execution log output
+      immediately before the broken pipe message visible.
+
+      Should this be the case, Ansible and OpenSSH may need to have their
+      configuration files tuned to meet the needs of the environment.
+
+      Consult the Ansible configuration file to see available connection settings
+      ssh_args, timeout, and possibly pipelining..::
+
+        https://github.com/ansible/ansible/blob/release1.7.0/examples/ansible.cfg
+
+      As Ansible uses OpenSSH, Please reference the ssh_config manual, in
+      paricular the ServerAliveInterval and ServerAliveCountMax options.
+
 Postfix fails to reload
 =======================
 
