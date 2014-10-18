@@ -200,6 +200,8 @@
     - include: step_os-apply-config.yml
     - include: start_mysql.yml
     - include: start_rabbitmq.yml
+    - name: "Run os-collect-config"
+      command: os-collect-config --force --one
     - service: name=os-collect-config state=started
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_undercloud_services
