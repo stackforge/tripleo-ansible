@@ -12,6 +12,10 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+---
+- name: "Pausing for 60 seconds to give MySQL time to become ready - Helion"
+  pause: seconds=60 prompt="Pausing for 60 seconds to give MySQL time to become ready"
+  when: helion is defined
 - name: Triggering os-create-db on databases
   sudo: yes
   script: files/create-databases.sh
