@@ -174,8 +174,6 @@
       when: instance_status == "ACTIVE"
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
-    - include: cleanup_cinder_volumes.yml
-      when: instance_status == "ACTIVE"
     - include: step_unmount.yml
       when: instance_status == "ACTIVE"
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ undercloud_rebuild_image_id }}", when: instance_status != "REBUILD" }
