@@ -172,6 +172,8 @@
   tasks:
     - include: step_preserve_password_file.yml
       when: instance_status == "ACTIVE"
+    - include: step_undercloud_backup_tftpboot.yml
+      when: instance_status == "ACTIVE"
     - include: preserve_ssh_host_keys.yml
       when: instance_status == "ACTIVE"
     - include: step_unmount.yml
@@ -196,6 +198,7 @@
     - include: step_reset_mnt_state_permissions.yml
     # Directly call os-apply-config to write out configuration files.
     - include: step_os-apply-config.yml
+    - include: step_undercloud_restore_tftpboot.yml
     - include: start_mysql.yml
     - include: start_rabbitmq.yml
     # Fix Ironic Reservations due to bug:
