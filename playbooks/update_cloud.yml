@@ -14,6 +14,12 @@
 # limitations under the License.
 ---
 - include: step_ping.yml
+- hosts: localhost
+  name: "Setup local environment for upgrade processes to run"
+  gather_facts: no
+  max_fail_percentage: 0
+  tasks:
+    - include: update_local_ssh_config.yml
 - hosts: undercloud
   name: Disable Undercloud
   sudo: yes
