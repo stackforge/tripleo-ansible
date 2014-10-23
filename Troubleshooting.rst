@@ -22,6 +22,49 @@ overload of the undercloud.
 
   * Notes:
 
+
+MySQL CLI configuration file missing
+====================================
+
+Should the post-rebuild restart fail, the possibility exists that the
+MySQL CLI configuration file is missing.
+
+  * Symptoms:
+
+    * Attempts to access the MySQL CLI command return an error::
+
+      ERROR 1045 (28000): Access denied for user 'root'@'localhost' (using password: NO)
+
+  * Solution:
+
+    * Verify that the MySQL CLI config file stored on the state drive
+      is present and has content within the file.  You can do this
+      by executing the command below to display the contents in your
+      terminal.::
+
+      sudo cat /mnt/state/root/metadata.my.cnf
+
+    * If the file is empty, run the command below which will retrieve current
+      metadata and update config files on disk.::
+
+      sudo os-collect-config --force --one --command=os-apply-config
+
+    * Verify that the MySQL CLI config file is present in the root user
+      directory by executing the following command::
+
+      sudo cat /root/.my.cnf
+
+    * If that file does not exist or is empty, two options exist.
+
+      * Add the following to your MySQL CLI command line::
+
+        --defaults-extra-file=/mnt/state/root/metadata.my.cnf
+
+      * Alternatively, copy configuration from the state drive.::
+
+        sudo cp -f /mnt/state/root/metadata.my.cnf /root/.my.cnf
+
+
 MySQL fails to start upon retrying update
 =========================================
 
