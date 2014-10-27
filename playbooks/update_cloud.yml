@@ -310,7 +310,6 @@
       service: name=apache2 enabled=no state=stopped
     - name: "Remove os-collect-config disable sentinel file"
       file: path=/mnt/state/disable-os-collect-config state=absent
-    - name: "Run os-collect-config"
     # Directly call os-apply-config to write out configuration files in case
     # os-collect-config has failed to reach that step.
     - include: step_os-apply-config.yml
