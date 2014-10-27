@@ -249,3 +249,4 @@ helion_undercloud_services:
   - mysql
 helion_overcloud_vsa_services:
   - vsa
+  - libvirt-bin
