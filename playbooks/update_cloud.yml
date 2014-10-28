@@ -251,6 +251,8 @@
     - include: refresh_config.yml
     - name: Stop os-collect-config to avoid collission
       service: name=os-collect-config state=stopped
+    - name: "Take a 30 second pause in case os-collect-config had intiiated a process"
+      pause: seconds=30 prompt="Pausing for 30 seconds to give time for any running os-collect-config sub processes to exit"
     - name: "Work around apache2 starting up at boot w/o config..."
       service: name=apache2 enabled=no state=stopped
     - name: "Remove os-collect-config disable sentinel file"
@@ -306,6 +308,8 @@
     - include: refresh_config.yml
     - name: Stop os-collect-config to avoid collission
       service: name=os-collect-config state=stopped
+    - name: "Take a 30 second pause in case os-collect-config had intiiated a process"
+      pause: seconds=30 prompt="Pausing for 30 seconds to give time for any running os-collect-config sub processes to exit"
     - name: "Work around apache2 starting up at boot w/o config..."
       service: name=apache2 enabled=no state=stopped
     - name: "Remove os-collect-config disable sentinel file"
