@@ -272,6 +272,7 @@
       wait_for: port=5672 state=started timeout=90 delay=10
     - name: Restart os-collect-config
       service: name=os-collect-config state=started
+    - include: mysql_access_fix.yml
 - hosts: controller
   name: Rebuild and Refresh Controller
   gather_facts: no
@@ -318,6 +319,7 @@
     # os-collect-config has failed to reach that step.
     - include: step_os-apply-config.yml
     - include: start_mysql.yml
+    - include: mysql_access_fix.yml
 - hosts: controller
   name: Initiate Database Creation
   max_fail_percentage: 0
