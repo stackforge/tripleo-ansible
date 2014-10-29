@@ -41,6 +41,16 @@ on the seed and/or undercloud. We include elements/tripleo-ansible,
 which can be included in seed and undercloud image builds to allow the
 tripleo-ansible tools to be automatically deployed for use.
 
+Executing Scripts and Playbooks
+-------------------------------
+
+All Ansible playbooks and scripts have been written to be run directly
+from the tripleo-ansible folder.
+
+An ``ansible.cfg`` file is provided. If you have a systemwide
+(/etc/ansible/ansible.conf) or user-specific ( ~/.ansible.cfg) Ansible
+config file, then Ansible will not utilize the provided configuration file.
+
 Pre-flight check
 ----------------
 
