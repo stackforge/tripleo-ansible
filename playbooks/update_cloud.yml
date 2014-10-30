@@ -343,8 +343,8 @@
   sudo: yes
   tasks:
     - include: start_rabbitmq.yml
-    - name: Re-run os-collect-config in case first one failed due to a race condition
-      command: os-collect-config --noforce --one
+    - name: Run os-collect-config with --force option
+      command: os-collect-config --force --one
     - name: "Restart os-collect-config"
       service: name=os-collect-config state=started
     - name: Wait for Rabbit to listen on its usual port
