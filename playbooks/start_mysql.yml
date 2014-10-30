@@ -16,4 +16,4 @@
   sudo: yes
   command: mv -f /etc/init/mysql.conf /etc/init/mysql-boot-control.conf removes=/etc/init/mysql.conf
 - service: name=mysql state=started enabled=yes
-  ignore_errors: yes
+  sudo: yes

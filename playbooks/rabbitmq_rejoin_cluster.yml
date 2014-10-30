@@ -1,0 +1,13 @@
+# Additional Steps for controller nodes only to rejoin the cluster
+- name: Get the bootstrap hostname
+  set_fact:
+    bootstrap_hostname={{ hostvars[groups['controller-bootstrap'][0]]['ansible_hostname'] }}
+- name: Stop the RabbitMQ application to enable rejoining the cluster
+  command: rabbitmqctl stop_app
+  sudo: yes
+- name: Re-join the RabbitMQ cluster
+  command: rabbitmqctl join_cluster "rabbit@{{ bootstrap_hostname }}"
+  failed_when: bootstrap_hostname is not defined
+- name: Start the RabbitMQ application
+  command: rabbitmqctl start_app
+  sudo: yes

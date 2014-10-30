@@ -58,6 +58,13 @@
     - service: name={{ item }} enabled=no state=stopped
       with_items: overcloud_compute_services
       when: helion is not defined and instance_status == "ACTIVE" and item in existing_services
+    - service: name=nova-compute state=stopped enabled=no
+    # After shutdown of neutron services, neutron-ns-metadata-proxy is still present
+    # This services logs to the ephemeral partition, so un-mounting is not possible
+    # No upstart scripts for this service, so needs to be killed.
+    - name: Kill neutron metadata proxy service
+      command: pkill -9 -f neutron-ns-metadata-proxy
+      ignore_errors: yes
 - hosts: swift-storage
   name: swift-storage
   tags: shutdown-cloud
@@ -142,21 +149,21 @@
     - include: galera_status.yml
       when: instance_status == "ACTIVE"
     - name: Stop MySQL under normal circumstances
-      service: name=mysql enabled=no state=stopped
+      include: stop_mysql.yml
       when: instance_status == "ACTIVE" and galera_status == "Synced" and wsrep_cluster_size.stdout != "1"
     - name: Stop MySQL if last node in cluster and single_controller flag has been set.
-      service: name=mysql enabled=no state=stopped
+      include: stop_mysql.yml
       when: instance_status == "ACTIVE" and single_controller is defined and galera_status == "Synced" and wsrep_cluster_size.stdout == "1"
     - fail: msg="Galera Replication is out of sync - cannot safely proceed"
       when: single_controller is not defined and instance_status == "ACTIVE" and galera_status == "Out of Sync"
     - fail: msg="Galera Replication - Node appears to be the last node in a cluster - cannot safely proceed unless overriden via single_controller setting - See README.rst"
       when: instance_status == "ACTIVE" and single_controller is not defined and wsrep_cluster_size.stdout == "1"
+    - name: Stop RabbitMQ Application for shutdown
+      command: rabbitmqctl stop_app
+    - name: Remove the node from the RabbitMQ cluster
+      command: rabbitmqctl reset
     - service: name=rabbitmq-server state=stopped
       when: instance_status == "ACTIVE"
-      ignore_errors: yes
-    - command: rabbitmqctl -n "rabbit@$(hostname)" stop
-      when: instance_status == "ACTIVE"
-      ignore_errors: yes
     - name: "Waiting for MySQL to stop"
       wait_for: port=3307 state=stopped timeout=60 delay=10
       when: instance_status == "ACTIVE" and helion is defined and single_controller is not defined and galera_status == 'Synced'
@@ -176,14 +183,10 @@
       when: instance_status == "ACTIVE" and single_controller is not defined and galera_status != "Synced"
     - fail: msg="Galera Replication on controller Management - cannot safely proceed as another MySQL cluster node is active."
       when: instance_status == "ACTIVE" and single_controller is not defined and wsrep_cluster_size.stdout != "1"
-    - service: name=mysql enabled=no state=stopped
+    - include: stop_mysql.yml
       when: instance_status == "ACTIVE"
     - service: name=rabbitmq-server enabled=no state=stopped
       when: instance_status == "ACTIVE"
-      ignore_errors: yes
-    - command: rabbitmqctl -n "rabbit@$(hostname)" stop
-      when: instance_status == "ACTIVE"
-      ignore_errors: yes
     - name: "Waiting for rabbitmq-server to stop"
       wait_for: port=5672 state=stopped timeout=60 delay=10
       when: instance_status == "ACTIVE"
@@ -223,7 +226,6 @@
     - include: disable_os_collect_config.yml
     - service_facts:
       when: instance_status == "ACTIVE"
-    - include: stop_mysql.yml
     - include: step_reset_mnt_state_permissions.yml
     # Directly call os-apply-config to write out configuration files.
     - include: step_os-apply-config.yml
@@ -269,7 +271,6 @@
   sudo: yes
   tasks:
     - include: mysql_init_fix.yml
-    - include: stop_mysql.yml
     - include: rabbitmq_occ_disable.yml
     - include: refresh_config.yml
     - name: Stop os-collect-config to avoid collission
@@ -286,6 +287,12 @@
     # Directly call os-apply-config to write out configuration files.
     - include: step_os-apply-config.yml
     - include: step_generate_hosts_file.yml
+    - name: Wait for cloud-init to Complete
+      wait_for: path=/run/cloud-init/result.json state=present
+    - name: Wait for ovs-vswitchd to be started
+      wait_for: path=/var/run/openvswitch/ovs-vswitchd.pid state=present
+    - name: Wait for ovs-vswitchd to config during start-up
+      pause: minutes=1
     - name: Bootstrap the MySQL cluster
       command: /etc/init.d/mysql bootstrap-pxc
       when: single_controller is not defined
@@ -346,7 +353,6 @@
     # MySQL started upon boot, then it would hopefully pickup new config
     # that os-collect-config and os-apply-config would have put in place.
     - include: mysql_init_fix.yml
-    - include: stop_mysql.yml
     - include: rabbitmq_occ_disable.yml
     - include: step_reset_mnt_state_permissions.yml
     - include: refresh_config.yml
@@ -362,6 +368,12 @@
     # os-collect-config has failed to reach that step.
     - include: step_os-apply-config.yml
     - include: step_generate_hosts_file.yml
+    - name: Wait for cloud-init to Complete
+      wait_for: path=/run/cloud-init/result.json state=present
+    - name: Wait for ovs-vswitchd to be started
+      wait_for: path=/var/run/openvswitch/ovs-vswitchd.pid state=present
+    - name: Wait for ovs-vswitchd to config during start-up
+      pause: minutes=1
     - include: start_mysql.yml
     - include: mysql_access_fix.yml
 - hosts: controller
@@ -377,6 +389,7 @@
   sudo: yes
   tasks:
     - include: start_rabbitmq.yml
+    - include: rabbitmq_rejoin_cluster.yml
     - name: Run os-collect-config with --force option
       command: os-collect-config --force --one
     - name: "Restart os-collect-config"
@@ -445,13 +458,16 @@
       sudo: yes
       command: os-collect-config --force --one
     - service: name=os-collect-config state=started
+      sudo: yes
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_overcloud_swift_services
+      sudo: yes
       when: helion is defined and item in existing_services
     - service: name={{ item }} enabled=yes state=started
       with_items: overcloud_swift_services
+      sudo: yes
       when: helion is not defined and item in existing_services
 - hosts: vsa
   name: Rebuild and Refresh vsa

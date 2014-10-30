@@ -12,5 +12,9 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-- service: name=mysql state=stopped enabled=no
-  ignore_errors: yes
+- name: Stopping mysql and disabling via upstart
+  service: name=mysql state=stopped enabled=no
+  sudo: yes
+- name: Removing mysql starting via sysv
+  command: update-rc.d mysql remove
+  sudo: yes
