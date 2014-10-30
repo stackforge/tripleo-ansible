@@ -26,6 +26,8 @@
   with_items: test_rabbitmq_script_list.stdout_lines
 - name: "Enable rabbitmq"
   command: os-svc-enable -n rabbitmq-server
+- name: "Replace rabbitmq-server override to avoid conditions where RabbitMQ can block upgrade."
+  copy: src=files/rabbitmq-server.override dest=/etc/init/ owner=root group=root mode=0644
 - name: Start rabbitmq before os-collect-config if previously configured
   command: service rabbitmq-server start
   ignore_errors: yes

@@ -262,6 +262,7 @@
     - include: step_reset_mnt_state_permissions.yml
     # Directly call os-apply-config to write out configuration files.
     - include: step_os-apply-config.yml
+    - include: step_generate_hosts_file.yml
     - name: Bootstrap the MySQL cluster
       command: /etc/init.d/mysql bootstrap-pxc
       when: single_controller is not defined
@@ -328,6 +329,7 @@
     # Directly call os-apply-config to write out configuration files in case
     # os-collect-config has failed to reach that step.
     - include: step_os-apply-config.yml
+    - include: step_generate_hosts_file.yml
     - include: start_mysql.yml
     - include: mysql_access_fix.yml
 - hosts: controller

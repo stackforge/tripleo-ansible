@@ -21,3 +21,6 @@
   file: mode=0755 path="/opt/stack/os-config-refresh/post-configure.d/{{item}}"
   when: rabbit_cluster_test.rc == 0 and single_controller is not defined
   with_items: test_rabbitmq_script_list.stdout_lines
+- name: "Removing temporary rabbitmq-server override"
+  sudo: yes
+  file: path=/etc/init/rabbitmq-server.override state=absent
