@@ -267,6 +267,15 @@
       command: /etc/init.d/mysql bootstrap-pxc
       when: single_controller is not defined
     - include: start_mysql.yml
+    - name: "Start keepalived if not in single_controller mode"
+      service: name=keepalived state=started enabled=yes
+      when: single_controller is not defined
+    - name: "Start haproxy if not in single_controller mode"
+      service: name=haproxy state=started enabled=yes
+      when: single_controller is not defined
+    - name: "Pause for 60 seconds if not in single_controller mode"
+      pause: seconds=60 prompt="Pausing for 60 seconds to allow keepalived/haproxy to enter operational states"
+      when: single_controller is not defined
     - include: step_create_databases.yml
     - include: start_rabbitmq.yml
     - name: "Run os-collect-config"
