@@ -1,3 +1,19 @@
+Retrying failed actions
+=======================
+
+In some cases, steps may fail as some components may not yet be ready for
+use due to initialization times, which can vary based on hardware and volume
+In the event of this occuring, two options exist that allows a user to
+optionally re-attempt or resume playbook executions.
+
+  * Solutions:
+
+    * Ansible ansible-playbook command option --start-at-task="TASK NAME"
+      allows resumption of a playbook, when used with the -l limit option.
+
+    * Ansible ansible-playbook command option --step allows a user to confirm
+      each task executed by Ansible before it is executed upon.
+
 A node goes to ERROR state during rebuild
 =========================================
 
