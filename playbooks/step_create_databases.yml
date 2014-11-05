@@ -16,6 +16,10 @@
 - name: "Pausing for 60 seconds to give MySQL time to become ready - Helion"
   pause: seconds=60 prompt="Pausing for 60 seconds to give MySQL time to become ready"
   when: helion is defined
+- name: "Execute script to wait for MySQL to enter a Synced state"
+  sudo: yes
+  script: files/wait_for_database-helion.sh
+  when: helion is defined
 - name: Triggering os-create-db on databases
   sudo: yes
   script: files/create-databases.sh
