@@ -431,3 +431,48 @@ RabbitMQ.
 
     * At this point, re-execute the pre-flight check, and proceed with the
       upgrade.
+
+VMs may not shut down properly during upgrade
+=============================================
+
+During the upgrade process, VMs on compute nodes are shut down
+gracefully. If the VMs do not shut down, this can cause the upgrade to
+stop.
+
+  * Error Messages:
+
+    * A playbook run ends with a message similar to::
+
+      failed: [10.23.210.31] => {"failed": true} msg: The ephemeral
+      storage of this system failed to be cleaned up properly and processes
+      or files are still in use. The previous ansible play should have
+      information to help troubleshoot this issue.
+
+    * The output of the playbook run prior to this message contains a
+      process listing and a listing of open files.
+
+  * Symptoms:
+
+    * The state drive on the compute node, /mnt, is still in use and
+      cannot be unmounted. You can confirm this by executing::
+
+      lsof -n | grep /mnt
+
+    * VMs are running on the node. To see which VMs are running, run::
+
+      virsh list
+
+    * If `virsh list` fails, you may need to restart libvirt-bin. Do
+      so by running::
+
+      service libvirt-bin restart
+
+  * Solution:
+
+    * Manual intervention is required. You will need to determine why
+      the VMs did not shut down properly, and resolve the issue.
+
+    * Unresponsive VMs can be forcibly shutdown using `virsh destroy
+      <id>`. Note that this can corrupt filesystems on the VM.
+
+    * Resume the playbook run once the VMs have been shut down.
