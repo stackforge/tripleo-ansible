@@ -3,7 +3,7 @@ Retrying failed actions
 
 In some cases, steps may fail as some components may not yet be ready for
 use due to initialization times, which can vary based on hardware and volume
-In the event of this occuring, two options exist that allows a user to
+In the event of this occurring, two options exist that allows a user to
 optionally re-attempt or resume playbook executions.
 
   * Solutions:
@@ -30,11 +30,11 @@ overload of the undercloud.
 
     * Get the image ID of the machine with `nova show`::
 
-      nova show $node_id
+        nova show $node_id
 
     * Rebuild manually::
 
-      nova rebuild $node_id $image_id
+        nova rebuild $node_id $image_id
 
   * Notes:
 
@@ -49,7 +49,7 @@ MySQL CLI configuration file is missing.
 
     * Attempts to access the MySQL CLI command return an error::
 
-      ERROR 1045 (28000): Access denied for user 'root'@'localhost' (using password: NO)
+        ERROR 1045 (28000): Access denied for user 'root'@'localhost' (using password: NO)
 
   * Solution:
 
@@ -58,27 +58,27 @@ MySQL CLI configuration file is missing.
       by executing the command below to display the contents in your
       terminal.::
 
-      sudo cat /mnt/state/root/metadata.my.cnf
+        sudo cat /mnt/state/root/metadata.my.cnf
 
     * If the file is empty, run the command below which will retrieve current
       metadata and update config files on disk.::
 
-      sudo os-collect-config --force --one --command=os-apply-config
+        sudo os-collect-config --force --one --command=os-apply-config
 
     * Verify that the MySQL CLI config file is present in the root user
       directory by executing the following command::
 
-      sudo cat /root/.my.cnf
+        sudo cat /root/.my.cnf
 
     * If that file does not exist or is empty, two options exist.
 
       * Add the following to your MySQL CLI command line::
 
-        --defaults-extra-file=/mnt/state/root/metadata.my.cnf
+          --defaults-extra-file=/mnt/state/root/metadata.my.cnf
 
       * Alternatively, copy configuration from the state drive.::
 
-        sudo cp -f /mnt/state/root/metadata.my.cnf /root/.my.cnf
+          sudo cp -f /mnt/state/root/metadata.my.cnf /root/.my.cnf
 
 
 MySQL fails to start upon retrying update
@@ -88,15 +88,16 @@ If the update was aborted or failed during the Update sequence before a
 single MySQL controller was operational, MySQL will fail to start upon retrying.
 
   * Symptoms:
+
     * Update is being re-attempted.
 
     * The following error messages having been observed.
 
-       * msg: Starting MySQL (Percona XtraDB Cluster) database server: mysqld . . . . The server quit without updating PID file (/var/run/mysqld/mysqld.pid)
+       * `msg: Starting MySQL (Percona XtraDB Cluster) database server: mysqld . . . . The server quit without updating PID file (/var/run/mysqld/mysqld.pid)`
 
-       * stderr: ERROR 2002 (HY000): Can't connect to local MySQL server through socket '/var/run/mysqld/mysqld.sock' (111)
+       * `stderr: ERROR 2002 (HY000): Can't connect to local MySQL server through socket '/var/run/mysqld/mysqld.sock' (111)`
 
-       * FATAL: all hosts have already failed -- aborting
+       * `FATAL: all hosts have already failed -- aborting`
 
     * Update automatically aborts.
 
@@ -111,23 +112,23 @@ single MySQL controller was operational, MySQL will fail to start upon retrying.
 
   * Solution:
 
-    * Use `nova list` to determine the IP of the congtrollerMgmt node, then ssh into it::
+    * Use `nova list` to determine the IP of the controllerMgmt node, then ssh into it::
 
-      ssh heat-admin@$IP
+        ssh heat-admin@$IP
 
     * Verify MySQL is down by running the mysql client as root. It _should_ fail::
 
-      sudo mysql -e "SELECT 1"
+        sudo mysql -e "SELECT 1"
 
     * Attempt to restart MySQL in case another cluster node is online.
       This should fail in this error state, however if it succeeds your
       cluster should again be operational and the next step can be skipped.::
 
-      sudo /etc/init.d/mysql start
+        sudo /etc/init.d/mysql start
 
     * Start MySQL back up in single node bootstrap mode::
 
-      sudo /etc/init.d/mysql bootstrap-pxc
+        sudo /etc/init.d/mysql bootstrap-pxc
 
 
 MySQL/Percona/Galera is out of sync
@@ -146,44 +147,44 @@ complement of servers before updates can be performed safely.
 
     * use `nova list` to determine IP of controllerMgmt node, then SSH to it::
       
-      ssh heat-admin@$IP
+        ssh heat-admin@$IP
 
     * Verify replication is out of sync::
 
-      sudo mysql -e "SHOW STATUS like 'wsrep_%'"
+        sudo mysql -e "SHOW STATUS like 'wsrep_%'"
 
     * Stop mysql::
 
-      sudo /etc/init.d/mysql stop
+        sudo /etc/init.d/mysql stop
 
     * Verify it is down by running the mysql client as root. It _should_ fail::
 
-      sudo mysql -e "SELECT 1"
+        sudo mysql -e "SELECT 1"
 
     * Start controllerMgmt0 MySQL back up in single node bootstrap mode::
 
-      sudo /etc/init.d/mysql bootstrap-pxc
+        sudo /etc/init.d/mysql bootstrap-pxc
 
-    * On the remaining controller nodes obseved to be having issues, utilize
+    * On the remaining controller nodes observed to be having issues, utilize
       the IP address via `nova list` and login to them.::
 
-      ssh heat-admin@$IP
+        ssh heat-admin@$IP
 
      * Verify replication is out of sync::
 
-      sudo mysql -e "SHOW STATUS like 'wsrep_%'"
+        sudo mysql -e "SHOW STATUS like 'wsrep_%'"
 
     * Stop mysql::
 
-      sudo /etc/init.d/mysql stop
+        sudo /etc/init.d/mysql stop
 
     * Verify it is down by running the mysql client as root. It _should_ fail::
 
-      sudo mysql -e "SELECT 1"
+        sudo mysql -e "SELECT 1"
 
     * Start MySQL back up so it attempts to connect to controllerMgmt0::
 
-      sudo /etc/init.d/mysql start
+        sudo /etc/init.d/mysql start
 
     * If restarting MySQL fails, then the database is most certainly out of sync
       and the MySQL error logs, located at /var/log/mysql/error.log, will need
@@ -202,11 +203,11 @@ error is thrown and update aborted.
 
   * Symptoms:
 
-    * Update Failed with error message "Galera Replication - Node appears to be the last node in a cluster - cannot safely proceed unless overriden via single_controller setting - See README.rst"
+    * Update Failed with error message "Galera Replication - Node appears to be the last node in a cluster - cannot safely proceed unless overridden via single_controller setting - See README.rst"
 
   * Actions:
 
-    * Run the pre-flight_check.yml playbook.  It will atempt to restart MySQL
+    * Run the pre-flight_check.yml playbook.  It will attempt to restart MySQL
       on each node in the "Ensuring MySQL is running -" step.  If that step
       succeeeds, you should be able to re-run the playbook and not encounter
       "Node appears to be last node in a cluster" error.
@@ -221,7 +222,7 @@ SSH Connectivity is lost
 Ansible uses SSH to communicate with remote nodes. In heavily loaded, single
 host virtualized environments, SSH can lose connectivity.  It should be noted
 that similar issues in a physical environment may indicate issues in the
-underlying network infrasucture.
+underlying network infrastructure.
 
   * Symptoms:
 
@@ -229,14 +230,13 @@ underlying network infrasucture.
 
     * Error output::
 
-      fatal: [192.0.2.25] => SSH encountered an unknown error. The output was:
-      OpenSSH_6.6.1, OpenSSL 1.0.1i-dev xx XXX xxxx
-      debug1: Reading configuration data /etc/ssh/ssh_config
-      debug1: /etc/ssh/ssh_config line 19: Applying options for *
-      debug1: auto-mux: Trying existing master
-      debug2: fd 3 setting O_NONBLOCK
-      mux_client_hello_exchange: write packet: Broken pipe
-      FATAL: all hosts have already failed – aborting
+        fatal: [192.0.2.25] => SSH encountered an unknown error. The
+        output was: OpenSSH_6.6.1, OpenSSL 1.0.1i-dev xx XXX xxxx
+        debug1: Reading configuration data /etc/ssh/ssh_config debug1:
+        /etc/ssh/ssh_config line 19: Applying options for * debug1:
+        auto-mux: Trying existing master debug2: fd 3 setting
+        O_NONBLOCK mux_client_hello_exchange: write packet: Broken
+        pipe FATAL: all hosts have already failed – aborting
 
   * Solution:
 
@@ -255,7 +255,7 @@ underlying network infrasucture.
         reboot
 
     * If this issue is repeatedly encountered on a physical environment, the
-      network infrastucture should be inspected for errors.
+      network infrastructure should be inspected for errors.
 
     * Similar error messages to the error noted in the Symptom may occur with
       long running processes, such as database creation/upgrade steps.  These
@@ -287,7 +287,7 @@ it is not running when the system expects it to be running.
 
     * Start postfix::
 
-      sudo service postfix start
+        sudo service postfix start
 
 Apache2 Fails to start
 ======================
@@ -310,7 +310,7 @@ setup process.
 
     * Re-run `os-collect-config` to reassert the SSL certificates::
 
-      sudo os-collect-config --force --one
+        sudo os-collect-config --force --one
 
 RabbitMQ still running when restart is attempted
 ================================================
@@ -328,7 +328,7 @@ There are certain system states that cause RabbitMQ to fail to die on normal kil
 Instance reported with status == "SHUTOFF" and task_state == "powering on"
 ==========================================================================
 
-If nova atempts to restart an instance when the compute node is not ready,
+If nova attempts to restart an instance when the compute node is not ready,
 it is possible that nova could entered a confused state where it thinks that
 an instance is starting when in fact the compute node is doing nothing.
 
@@ -382,16 +382,20 @@ RabbitMQ.
 
     * Pre-flight check returns an error similar to::
 
-      failed: [192.0.2.24] => {"changed": true, "cmd": "rabbitmqctl -n rabbit@$(hostname) status"
-      stderr: Error: unable to connect to node 'rabbit@overcloud-controller0-vahypr34iy2x': nodedown
+        failed: [192.0.2.24] => {"changed": true, "cmd":
+        "rabbitmqctl -n rabbit@$(hostname) status" stderr: Error:
+        unable to connect to node
+        'rabbit@overcloud-controller0-vahypr34iy2x': nodedown
 
     * Attempting to manually start MySQL or RabbitMQ return::
 
-      start: Job failed to start
+        start: Job failed to start
 
     * Upgrade execution returns with an error indicating::
 
-      TASK: [fail msg="Galera Replication - Node appears to be the last node in a cluster - cannot safely proceed unless overriden via single_controller setting - See README.rst"] ***
+        TASK: [fail msg="Galera Replication - Node appears to be the
+        last node in a cluster - cannot safely proceed unless
+        overriden via single_controller setting - See README.rst"] ***
 
   * Symptom:
 
@@ -405,24 +409,24 @@ RabbitMQ.
       command may fail without additional intervention, however it should mount
       the state drive which is all that is needed to proceed to the next step.::
 
-      sudo os-collect-config --force --one
+        sudo os-collect-config --force --one
 
     * At this point, the /mnt volume should be visible in the output of the `df`
       command.
 
     * Start MySQL by executing::
 
-      sudo /etc/init.d/mysqld start
+        sudo /etc/init.d/mysqld start
 
     * If MySQL fails to start, and it has been verified that MySQL is not
       running on any controller nodes, then you will need to identify the
       *last* node that MySQL was stopped on and consult the section "MySQL
-      fails to start upon retrying update" for guidence on restarting the
+      fails to start upon retrying update" for guidance on restarting the
       cluster.
 
     * Start RabbitMQ by executing::
 
-      service rabbitmq-server start
+        service rabbitmq-server start
 
     * If rabbitmq-server fails to start, then the cluster may be down. If
       this is the case, then the *last* node to be stopped will need to be
@@ -443,10 +447,10 @@ stop.
 
     * A playbook run ends with a message similar to::
 
-      failed: [10.23.210.31] => {"failed": true} msg: The ephemeral
-      storage of this system failed to be cleaned up properly and processes
-      or files are still in use. The previous ansible play should have
-      information to help troubleshoot this issue.
+        failed: [10.23.210.31] => {"failed": true} msg: The ephemeral
+        storage of this system failed to be cleaned up properly and
+        processes or files are still in use. The previous ansible play
+        should have information to help troubleshoot this issue.
 
     * The output of the playbook run prior to this message contains a
       process listing and a listing of open files.
@@ -456,16 +460,16 @@ stop.
     * The state drive on the compute node, /mnt, is still in use and
       cannot be unmounted. You can confirm this by executing::
 
-      lsof -n | grep /mnt
+        lsof -n | grep /mnt
 
     * VMs are running on the node. To see which VMs are running, run::
 
-      virsh list
+        virsh list
 
     * If `virsh list` fails, you may need to restart libvirt-bin. Do
       so by running::
 
-      service libvirt-bin restart
+        service libvirt-bin restart
 
   * Solution:
 
