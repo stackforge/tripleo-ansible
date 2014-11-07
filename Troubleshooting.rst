@@ -480,3 +480,20 @@ stop.
       <id>`. Note that this can corrupt filesystems on the VM.
 
     * Resume the playbook run once the VMs have been shut down.
+
+Instances are inaccessible via network
+======================================
+
+Upon restarting, it is possible that the virtual machine is
+unreachable due to Open vSwitch not being ready for the virtual machine
+networking.
+
+  * Symptom:
+
+    * After a restart, instances won't ping.
+
+  * Solution:
+
+    * To resolve, restart the nova-compute service on the compute
+      node. `nova show <id>` to identify hypervisor, and `service
+      nova-compute restart`.
