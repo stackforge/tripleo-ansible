@@ -92,7 +92,6 @@ helion_overcloud_controller_services:
   - nova-api
   - nova-cert
   - nova-conductor
-  - nova-consoleauth
   - nova-novncproxy
   - nova-scheduler
   - ceilometer-api
@@ -100,7 +99,7 @@ helion_overcloud_controller_services:
   - rsync
   - stunnel
   - rsyslog
-helion_overcloudmgmt_controller_services:
+helion_overcloud_bootstrap_controller_services:
   - cron
   - apache2
   - beaver
@@ -109,7 +108,7 @@ helion_overcloudmgmt_controller_services:
   - ceilometer-agent-central
   - ceilometer-agent-notification
   - ceilometer-alarm-evaluator
-  - ceilometer-alarm-notifie
+  - ceilometer-alarm-notifier
   - cinder-api
   - cinder-backup
   - cinder-scheduler

@@ -58,6 +58,10 @@ A playbook exists that can be used to check the controllers prior to the
 execution of the main playbook in order to quickly identify any issues in
 advance.
 
+All controller nodes must be in a healty state (ACTIVE) for the pre flight
+checks to pass. We **CANNOT** proceed with an update if a controller node is
+down.
+
     ansible-playbook -vvvv -M library/cloud -i plugins/inventory/heat.py -u heat-admin playbooks/pre-flight_check.yml
 
 Running the updates
@@ -94,7 +98,7 @@ subsituted into place.  Current variables for passing the image variables
 in are nova_compute_rebuild_image_id and controller_rebuild_image_id
 which are passed into the chained playbook.
      
-    ansible-playbook -vvvv -u heat-admin -i plugins/inventory/heat.py -e nova_compute_rebuild_image_id=1ae9fe6e-c0cc-4f62-8e2b-1d382b20fdcb -e controller_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc -e controllermgmt_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc -e swift_storage_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc -e vsa_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc playbooks/update_cloud.yml
+    ansible-playbook -vvvv -u heat-admin -i plugins/inventory/heat.py -e nova_compute_rebuild_image_id=1ae9fe6e-c0cc-4f62-8e2b-1d382b20fdcb -e controller_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc -e swift_storage_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc -e vsa_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc playbooks/update_cloud.yml
 
 If you have set the image ids in group vars:
 
@@ -107,7 +111,6 @@ Below, we break down the above command so you can see what each part does:
  * -i plugins/inventory/heat.py - Sets the inventory plugin.
  * -e nova_compute_rebuild_image_id=1ae9fe6e-c0cc-4f62-8e2b-1d382b20fdcb - Sets the compute node image ID.
  * -e controller_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc - Sets the controller node image ID.
- * -e controllermgmt_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc - Sets the controllerMgmt node image ID.
  * -e swift_storage_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc - Sets the swift storage node image ID.
  * -e vsa_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc - Sets the vsa node image ID.
  * playbooks/update_cloud.yml is the path and file name to the ansible playbook that will be utilized.

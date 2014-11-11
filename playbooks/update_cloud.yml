@@ -95,8 +95,8 @@
       when: helion is not defined and instance_status == "ACTIVE" and item in existing_services
     - include: stop_tgt.yml
       when: instance_status == "ACTIVE"
-- hosts: controllerMgmt
-  name: Disable Overcloud Controller Mgmt node
+- hosts: controller-bootstrap
+  name: Disable Overcloud Controller Bootstrap node
   sudo: yes
   gather_facts: no
   max_fail_percentage: 0
@@ -104,12 +104,12 @@
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
-      with_items: helion_overcloudmgmt_controller_services
+      with_items: helion_overcloud_bootstrap_controller_services
       when: helion is defined and instance_status == "ACTIVE" and item in existing_services
     - include: stop_tgt.yml
       when: instance_status == "ACTIVE"
 # Critically, we need to select a single node of the galera cluster to
-# be the 'last'. So controllerMgmt fits that bill for now. We will have
+# be the 'last'. So controller-bootstrap fits that bill for now. We will have
 # to select one to be the "special" node eventually, we can do that with
 # host facts and conditionals. The last to go down must have the
 # Galera bootstrap run on it, or none of them will come up.
@@ -152,8 +152,8 @@
     - name: "Waiting for rabbitmq-server to stop"
       wait_for: port=5672 state=stopped timeout=60 delay=10
       when: instance_status == "ACTIVE"
-- hosts: controllerMgmt
-  name: Stop MySQL/RabbitMQ on Overcloud Controller Mgmt node
+- hosts: controller-bootstrap
+  name: Stop MySQL/RabbitMQ on Overcloud Controller Bootstrap node
   sudo: yes
   gather_facts: no
   max_fail_percentage: 0
@@ -229,8 +229,8 @@
     - service: name={{ item }} enabled=yes state=started
       with_items: undercloud_services
       when: helion is not defined and item in existing_services
-- hosts: controllerMgmt
-  name: Rebuild and Refresh ControllerMgmt
+- hosts: controller-bootstrap
+  name: Rebuild and Refresh controller-bootstrap
   gather_facts: no
   max_fail_percentage: 0
   tasks:
@@ -242,15 +242,15 @@
       when: instance_status == "ACTIVE"
     - include: step_unmount.yml
       when: instance_status == "ACTIVE"
-    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controllermgmt_rebuild_image_id }}", when: instance_status != "REBUILD" }
+    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controller_rebuild_image_id }}", when: instance_status != "REBUILD" }
     - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=TRIPLEO_HK_RESTORED delay=10
       when: wait_for_hostkey is defined
       ignore_errors: yes
     - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
       when: wait_for_hostkey is not defined
       ignore_errors: yes
-    - pause: seconds=30 prompt="Allowing controllerMgmt node to settle"
-- hosts: controllerMgmt
+    - pause: seconds=30 prompt="Allowing controller-bootstrap node to settle"
+- hosts: controller-bootstrap
   name: Start initial cluster node
   max_fail_percentage: 0
   sudo: yes
@@ -368,7 +368,7 @@
       service: name=os-collect-config state=started
     - name: Wait for Rabbit to listen on its usual port
       wait_for: port=5672 state=started timeout=120 delay=10
-- hosts: controller:controllerMgmt
+- hosts: controller:controller-bootstrap
   name: Check RabbitMQ
   max_fail_percentage: 0
   tasks:
@@ -378,8 +378,8 @@
       command: rabbitmqctl cluster_status
       when: single_controller is not defined
     - include: cleanup_rabbitmq_start.yml
-- hosts: controllerMgmt
-  name: Enable Overcloud ControllerMgmt
+- hosts: controller-bootstrap
+  name: Enable Overcloud controller-bootstrap
   sudo: yes
   max_fail_percentage: 0
   tasks:
@@ -387,7 +387,7 @@
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started
-      with_items: helion_overcloudmgmt_controller_service
+      with_items: helion_overcloud_bootstrap_controller_service
       when: helion is defined and item in existing_services
 - hosts: controller
   name: Enable Overcloud Controller

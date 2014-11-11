@@ -22,29 +22,22 @@ import sys
 import tempfile
 import yaml
 
-# Example
-# +--------------------------------------+------------------------------------+-------------+------------------+------------+--------+
-# | ID                                   | Name                               | Disk Format | Container Format | Size       | Status |
-# +--------------------------------------+------------------------------------+-------------+------------------+------------+--------+
-# | ec91d1d4-01a1-4cfb-8ad3-eade8c8319fe | bm-deploy-kernel                   | aki         | aki              | 3170560    | active |
-# | 4d262433-5953-481f-8be5-538f2ed38bf8 | bm-deploy-ramdisk                  | ari         | ari              | 22025013   | active |
-# | 1653f657-bff6-4365-a120-cc92034e4a4c | overcloud-compute-101              | qcow2       | bare             | 603799552  | active |
-# | 41904372-f07c-43fe-8b86-8e295b192728 | overcloud-compute-101-initrd       | ari         | ari              | 9966177    | active |
-# | 3652aa91-e37c-456e-a0b5-563b4e0df2b1 | overcloud-compute-101-vmlinuz      | aki         | aki              | 3170560    | active |
-# | 797e053c-77cb-46b7-8a71-b3bd6b79d121 | overcloud-control-101              | qcow2       | bare             | 907608064  | active |
-# | 8c45d9a7-f371-4151-9ec1-c495713f0d3c | overcloud-control-101-initrd       | ari         | ari              | 10729856   | active |
-# | 67a37fc2-cb0e-4be8-a434-23e1884ecb03 | overcloud-control-101-vmlinuz      | aki         | aki              | 3170560    | active |
-# | 37de0bb8-c7fc-406e-bfec-ed9913f6eceb | overcloud-control-mgmt-101         | qcow2       | bare             | 1035993088 | active |
-# | fa0def7e-294c-4f3d-a5f3-f646f4930285 | overcloud-control-mgmt-101-initrd  | ari         | ari              | 10729426   | active |
-# | 75a25d07-b567-41b8-935d-5406c9ea13d5 | overcloud-control-mgmt-101-vmlinuz | aki         | aki              | 3170560    | active |
-# | 4a694bef-e491-4658-8320-5a78b93573d1 | overcloud-swift-101                | qcow2       | bare             | 384146432  | active |
-# | 42d602a1-8aa3-4845-9b9c-d302873d4557 | overcloud-swift-101-initrd         | ari         | ari              | 9965422    | active |
-# | 499848c6-6ffd-443f-b505-eb95aaf7b3d9 | overcloud-swift-101-vmlinuz        | aki         | aki              | 3170560    | active |
-# | ae95bbc8-a1f6-4f30-ab33-03e06aecd559 | overcloud-vsa-101                  | qcow2       | bare             | 827457536  | active |
-# | 2228dc1d-9e47-4a07-b723-575fda5f944c | overcloud-vsa-101-initrd           | ari         | ari              | 9965593    | active |
-# | 0a8d6d5a-8e4f-4a59-9f4a-3e6155a5d22c | overcloud-vsa-101-vmlinuz          | aki         | aki              | 3170560    | active |
-# +--------------------------------------+------------------------------------+-------------+------------------+------------+--------+
-
+# # Example
+# +--------------------------------------+---------------------------+-------------+------------------+------------+--------+
+# | ID                                   | Name                      | Disk Format | Container Format | Size       | Status |
+# +--------------------------------------+---------------------------+-------------+------------------+------------+--------+
+# | 2b98a88d-d79e-4a2f-87c1-c8c76c690092 | bm-deploy-kernel          | aki         | aki              | 3170560    | active |
+# | 3d2b01b0-bf7a-4000-8d56-cfd1131c32bc | bm-deploy-ramdisk         | ari         | ari              | 22778117   | active |
+# | 3dc11dba-f639-42f1-8d54-d8f08268bd25 | overcloud-compute         | qcow2       | bare             | 614817792  | active |
+# | 3276eef3-d128-4ab6-899f-af9201145505 | overcloud-compute-initrd  | ari         | ari              | 9963568    | active |
+# | 7cfb3aa9-3f6c-4f20-80a4-9d4694641dec | overcloud-compute-vmlinuz | aki         | aki              | 3170560    | active |
+# | cef3732c-1c6a-4182-8a6e-3960a1acf99e | overcloud-control         | qcow2       | bare             | 1062666240 | active |
+# | a8126d25-305c-47d9-a27e-7fbc3d92bb7d | overcloud-control-initrd  | ari         | ari              | 10726940   | active |
+# | c1602866-0664-49f5-b3f8-97dc936dc198 | overcloud-control-vmlinuz | aki         | aki              | 3170560    | active |
+# | 25a6637e-71b3-4bff-95ca-a1a08582c801 | overcloud-swift           | qcow2       | bare             | 387252224  | active |
+# | 1932f035-725f-40b1-827d-20da22686df1 | overcloud-swift-initrd    | ari         | ari              | 9963824    | active |
+# | 40d536b3-a0f8-4d33-8077-521db986de5f | overcloud-swift-vmlinuz   | aki         | aki              | 3170560    | active |
+# +--------------------------------------+---------------------------+-------------+------------------+------------+--------+
 
 def image_list():
     # Using subprocess to avoid glanceclient dep for now
@@ -78,8 +71,6 @@ def name_to_class(name):
             new_bits.append(bit)
     if new_bits == ['compute']:
         return ('nova-compute', buildnum)
-    if new_bits == ['control', 'mgmt']:
-        return ('controllerMgmt', buildnum)
     if new_bits == ['control']:
         return ('controller', buildnum)
     if new_bits == ['swift']:
