@@ -12,12 +12,35 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-- hosts: controllerMgmt:controller
+- hosts: localhost
+  vars:
+    num_bootstrap_hosts: "{{ groups['controller-bootstrap'] | length }}"
+    expected_bootstrap_hosts: 1
+    num_controller_hosts: "{{ groups['controller'] | length }}"
+    expected_controller_hosts: 2
+  tasks:
+    - name: "Verfiy correct number of controller bootstrap nodes"
+      fail: >
+        msg="The number of bootstrap nodes is "{{ num_bootstrap_hosts }}" \
+             must be exactly "{{ expected_bootstrap_hosts }}"!"
+      when: num_bootstrap_hosts | int != expected_bootstrap_hosts
+    - name: "Verfiy correct number of controller non-bootstrap nodes"
+      fail: >
+        msg="The number of controller non bootstrap nodes is \
+             "{{ num_controller_hosts }}" must be exactly \
+             "{{ expected_controller_hosts }}"!"
+      when: num_controller_hosts | int != expected_controller_hosts
+- hosts: controller-bootstrap:controller
   name: "Check Controller Node Status - Ensuring MySQL is running"
   sudo: yes
   gather_facts: yes
   max_fail_percentage: 0
   tasks:
+    - name: "Verfiy controller nodes are ACTIVE"
+      fail: >
+        msg="One of more controller nodes don't have a status of \
+             ACTIVE in nova, cannot proceed with update"
+      when: instance_status != "ACTIVE"
     - name: "Rename MySQL upstart configuration, if necessary, to obtain correct results."
       sudo: yes
       command: mv -f /etc/init/mysql.conf /etc/init/mysql-boot-control.conf removes=/etc/init/mysql.conf
@@ -25,7 +48,7 @@
     - name: "Ensuring MySQL is running - If this fails, the cluster is likely not in a healthy state, and manual checks/recovery will be required."
       service: name=mysql state=started
       when: instance_status == "ACTIVE"
-- hosts: controllerMgmt:controller
+- hosts: controller-bootstrap:controller
   name: Check RabbitMQ server status
   sudo: yes
   gather_facts: yes
@@ -39,7 +62,7 @@
     - name: "Attempting to start single cluster members, if this fails it may be necessary to restart the nodes manually as root on each node using the command: rabbitmq-server -detached"
       service: name=rabbitmq-server status=started
       when: rabbitmq_status.rc != 0
-- hosts: controllerMgmt:controller
+- hosts: controller-bootstrap:controller
   name: Check controller MySQL Sync status
   gather_facts: no
   max_fail_percentage: 0
