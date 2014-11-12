@@ -185,10 +185,3 @@ file.
  * ssh_timeout - This value, defaulted to 900 [seconds], is the maximum
    amount of time that the post-rebuild ssh connection test will wait for
    before proceeding.
- * pre_hook_command - This, when set to a command, such as /bin/date, will
-   execute that command before starting any jobs.
- * post_hook_command - Similar to the pre_hook_command variable, when
-   defined, will execute upon the completion of the upgrade job.
- * previous_upgrade_failed_restart_mysql - This option enables logic to restart
-   MySQL in the event it is not running on the controllerMgmt node, likely from
-   a failed upgrade.
