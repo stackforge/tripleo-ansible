@@ -494,6 +494,18 @@ networking.
 
   * Solution:
 
-    * To resolve, restart the nova-compute service on the compute
-      node. `nova show <id>` to identify hypervisor, and `service
-      nova-compute restart`.
+    * To resolve:
+
+      * Log into a controller node and execute `source /root/stackrc`
+
+      * Stop all virtual machines on a compute node utilizing `nova
+        hypervisor-servers <hostname>` and `nova stop <id>`
+
+      * Log into the undercloud node and execute `source /root/stackrc`
+
+      * Obtain a list of nodes by executing `nova list`
+
+      * Execute `nova stop <id>` for the affected compute node.
+
+      * Once the compute node has stopped, execute `nova start <id>` to
+        reboot the compute node.

@@ -42,6 +42,7 @@
   gather_facts: no
   max_fail_percentage: 0
   tasks:
+    - service: name=nova-compute state=stopped
     - include: stop_vms.yml
       when: instance_status == "ACTIVE"
     - service_facts:
@@ -507,3 +508,5 @@
     - service: name={{ item }} enabled=yes state=started
       with_items: overcloud_compute_services
       when: helion is not defined and item in existing_services
+    - pause: seconds=60 prompt="Giving Open vSwitch time to reconnect"
+    - service: name=nova-compute state=started enabled=yes
