@@ -138,14 +138,12 @@ helion_overcloud_bootstrap_controller_services:
   - rsyslog
 # This overcloud compute list is for upstream openstack
 overcloud_compute_services:
-  - nova-compute
   - neutron-openvswitch-agent
   - neutron-metadata-agent
   - libvirt-bin
   - snmpd
 helion_overcloud_compute_services:
   - beaver
-  - nova-compute
   - neutron-openvswitch-agent
   - neutron-metadata-agent
   - neutron-l3-agent
