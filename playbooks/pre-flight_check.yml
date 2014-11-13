@@ -12,6 +12,13 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+---
+- hosts: localhost
+  roles:
+    - { role: pre_flight_disk_check, fail_percent: 20, exclude_mounts: [], when: instance_status == "ACTIVE" }
+- hosts: undercloud
+  roles:
+    - { role: pre_flight_disk_check, fail_percent: 20, exclude_mounts: [], when: instance_status == "ACTIVE" }
 - hosts: localhost
   vars:
     num_bootstrap_hosts: "{{ groups['controller-bootstrap'] | length }}"
