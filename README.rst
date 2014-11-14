@@ -190,9 +190,6 @@ file.
    before starting any jobs.
  * post_hook_command - Similar to the pre_hook_command variable, when
    defined, will execute upon the completion of the upgrade job.
- * previous_upgrade_failed_restart_mysql - This option enables logic to restart
-   MySQL in the event it is not running on the controllerMgmt node, likely from
-   a failed upgrade.
  * online_upgrade - This setting tells the script to attempt an online upgrade
    of the node.  At present this is only known to work on compute nodes.
 

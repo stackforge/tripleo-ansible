@@ -22,6 +22,12 @@ wait_for_hostkey: True
 # This option adjusts logic to enable single controllers to be upgraded
 # instead of the entire controller cluster.
 ssh_timeout: 900
+# Command to be run on the playbook-executing host prior to upgrade
+# pre_hook_command: /bin/date
+# Command to be run on the playbook-executing host after upgrade
+# post_hook_command: /bin/date
+# Attempt online upgrade of compute nodes
+# online_upgrade: True
 default_update_file_location: /tmp/update_image.qcow2
 overcloud_controller_services:
   - haproxy
