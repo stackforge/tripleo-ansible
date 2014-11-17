@@ -28,16 +28,32 @@ overload of the undercloud.
  
     * Verify hardware is in working order.
 
+    * Verify that approximately 20% of the disk space is free on the Ironic
+      server node.
+
     * Get the image ID of the machine with `nova show`::
 
         nova show $node_id
 
     * Rebuild manually::
 
-        nova rebuild $node_id $image_id
+        nova rebuild --preserve-ephemeral $node_id $image_id
 
-  * Notes:
+A node times out after rebuild
+==============================
 
+While rare, there is the possibility that something unexpected happened
+and the host has failed to reboot as expected from a rebuild.
+
+  * Symptoms:
+
+    * Error Message: `msg: Timeout waiting for the server to come up.. Please
+      check manually`
+
+  * Solution:
+
+    * Follow the steps detailed above in "A node goes to ERROR state during
+      rebuild"
 
 MySQL CLI configuration file missing
 ====================================
