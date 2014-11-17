@@ -12,14 +12,19 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+---
+- name: Determine if node is part of a cluster
+  shell: grep -q "$(hostname)" "/mnt/state/var/lib/rabbitmq/mnesia/rabbit@$(hostname)/cluster_nodes.config"
+  ignore_errors: yes
+  register: rabbit_cluster_test
 - name: Collect names of post-configure.d rabbitmq files
   shell: ls /opt/stack/os-config-refresh/post-configure.d/|grep '\-rabbitmq$'
   register: test_rabbitmq_script_list
-  when: rabbit_cluster_test.rc == 0 and single_controller is not defined
+  when: single_controller is not defined and rabbit_cluster_test.rc == 0
 - name: If node rabbitmq cluster config was present, re-enable os-refresh-config post-configure.d.
   sudo: yes
   file: mode=0755 path="/opt/stack/os-config-refresh/post-configure.d/{{item}}"
-  when: rabbit_cluster_test.rc == 0 and single_controller is not defined
+  when: single_controller is not defined and rabbit_cluster_test.rc == 0
   with_items: test_rabbitmq_script_list.stdout_lines
 - name: "Removing temporary rabbitmq-server override"
   sudo: yes
