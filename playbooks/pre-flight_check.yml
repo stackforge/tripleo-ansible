@@ -15,7 +15,7 @@
 ---
 - hosts: localhost
   roles:
-    - { role: pre_flight_disk_check, fail_percent: 20, exclude_mounts: [], when: instance_status == "ACTIVE" }
+    - { role: pre_flight_disk_check, fail_percent: 20, exclude_mounts: [] }
 - hosts: undercloud
   roles:
     - { role: pre_flight_disk_check, fail_percent: 20, exclude_mounts: [], when: instance_status == "ACTIVE" }
