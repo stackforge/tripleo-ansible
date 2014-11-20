@@ -1,0 +1,8 @@
+Verified+2: Jenkins
+Code-Review+2: Julia Kreger <juliaashleykreger@gmail.com>
+Workflow+1: Julia Kreger <juliaashleykreger@gmail.com>
+Submitted-by: Jenkins
+Submitted-at: Thu, 20 Nov 2014 13:43:58 +0000
+Reviewed-on: https://review.openstack.org/135746
+Project: stackforge/tripleo-ansible
+Branch: refs/heads/master
