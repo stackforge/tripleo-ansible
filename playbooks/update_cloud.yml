@@ -150,14 +150,14 @@
       when: instance_status == "ACTIVE"
     - name: Stop MySQL under normal circumstances
       include: stop_mysql.yml
-      when: instance_status == "ACTIVE" and galera_status == "Synced" and wsrep_cluster_size.stdout != "1"
+      when: instance_status == "ACTIVE" and galera_status == "Synced" and galera_cluster_size != "1"
     - name: Stop MySQL if last node in cluster and single_controller flag has been set.
       include: stop_mysql.yml
-      when: instance_status == "ACTIVE" and single_controller is defined and galera_status == "Synced" and wsrep_cluster_size.stdout == "1"
+      when: instance_status == "ACTIVE" and single_controller is defined and galera_status == "Synced" and galera_cluster_size == "1"
     - fail: msg="Galera Replication is out of sync - cannot safely proceed"
       when: single_controller is not defined and instance_status == "ACTIVE" and galera_status == "Out of Sync"
     - fail: msg="Galera Replication - Node appears to be the last node in a cluster - cannot safely proceed unless overriden via single_controller setting - See README.rst"
-      when: instance_status == "ACTIVE" and single_controller is not defined and wsrep_cluster_size.stdout == "1"
+      when: instance_status == "ACTIVE" and single_controller is not defined and galera_cluster_size == "1"
     - name: Stop RabbitMQ Application for shutdown
       command: rabbitmqctl stop_app
     - name: Remove the node from the RabbitMQ cluster
@@ -182,7 +182,7 @@
     - fail: msg="Galera Replication on controller Management is out of sync - cannot safely proceed"
       when: instance_status == "ACTIVE" and single_controller is not defined and galera_status != "Synced"
     - fail: msg="Galera Replication on controller Management - cannot safely proceed as another MySQL cluster node is active."
-      when: instance_status == "ACTIVE" and single_controller is not defined and wsrep_cluster_size.stdout != "1"
+      when: instance_status == "ACTIVE" and single_controller is not defined and galera_cluster_size != "1"
     - include: stop_mysql.yml
       when: instance_status == "ACTIVE"
     - service: name=rabbitmq-server enabled=no state=stopped

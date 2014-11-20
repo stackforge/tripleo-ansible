@@ -17,6 +17,8 @@
   shell: mysql --defaults-file=/mnt/state/root/metadata.my.cnf --socket /var/run/mysqld/mysqld.sock -N -e "SHOW STATUS LIKE 'wsrep_cluster_size'"|cut -f2
   when: helion is not defined
   register: wsrep_cluster_size
+- set_fact: galera_cluster_size="{{wsrep_cluster_size.stdout}}"
+  when: helion is not defined
 - name: Fetch Galera sync status from MySQL - Helion
   sudo: yes
   command: mysql --defaults-file=/mnt/state/root/metadata.my.cnf -N -e "SHOW STATUS LIKE 'wsrep_local_state'"
@@ -31,3 +33,6 @@
   shell: mysql --defaults-file=/mnt/state/root/metadata.my.cnf -N -e "SHOW STATUS LIKE 'wsrep_cluster_size'"|cut -f2
   when: helion is defined
   register: wsrep_cluster_size
+- set_fact: galera_cluster_size="{{wsrep_cluster_size.stdout}}"
+  when: helion is defined
+
