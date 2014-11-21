@@ -39,6 +39,7 @@ import yaml
 # | 40d536b3-a0f8-4d33-8077-521db986de5f | overcloud-swift-vmlinuz   | aki         | aki              | 3170560    | active |
 # +--------------------------------------+---------------------------+-------------+------------------+------------+--------+
 
+
 def image_list():
     # Using subprocess to avoid glanceclient dep for now
     glance_list = subprocess.Popen(
@@ -137,6 +138,15 @@ def main(argv):
         ) as out:
             out.write(yaml.dump(existing, default_flow_style=False))
             os.rename(out.name, output_path)
+    if os.path.isfile(
+            os.path.join(args.output_dir, 'controller')
+        ) and not os.path.islink(
+            os.path.join(args.output_dir, 'controller-bootstrap')):
+        os.symlink(
+            'controller',
+            os.path.join(args.output_dir, 'controller-bootstrap')
+        )
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
