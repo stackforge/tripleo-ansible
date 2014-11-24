@@ -14,6 +14,7 @@
 # limitations under the License.
 ---
 - include: step_ping.yml
+  when: instance_status == "ACTIVE"
 - hosts: localhost
   name: "Setup local environment for upgrade processes to run"
   gather_facts: no
@@ -59,12 +60,14 @@
       with_items: overcloud_compute_services
       when: helion is not defined and instance_status == "ACTIVE" and item in existing_services
     - service: name=nova-compute state=stopped enabled=no
+      when: instance_status == "ACTIVE"
     # After shutdown of neutron services, neutron-ns-metadata-proxy is still present
     # This services logs to the ephemeral partition, so un-mounting is not possible
     # No upstart scripts for this service, so needs to be killed.
     - name: Kill neutron metadata proxy service
       command: pkill -9 -f neutron-ns-metadata-proxy
       ignore_errors: yes
+      when: instance_status == "ACTIVE"
 - hosts: swift-storage
   name: swift-storage
   tags: shutdown-cloud
@@ -160,8 +163,10 @@
       when: instance_status == "ACTIVE" and single_controller is not defined and galera_cluster_size == "1"
     - name: Stop RabbitMQ Application for shutdown
       command: rabbitmqctl stop_app
+      when: instance_status == "ACTIVE"
     - name: Remove the node from the RabbitMQ cluster
       command: rabbitmqctl reset
+      when: instance_status == "ACTIVE"
     - service: name=rabbitmq-server state=stopped
       when: instance_status == "ACTIVE"
     - name: "Waiting for MySQL to stop"
@@ -258,6 +263,13 @@
     - include: step_unmount.yml
       when: instance_status == "ACTIVE"
     - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ controller_rebuild_image_id }}", when: instance_status != "REBUILD" }
+- hosts: controller-bootstrap
+  name: Rebuild and Refresh controller-bootstrap
+  gather_facts: no
+  max_fail_percentage: 0
+  roles:
+    - restart_stopped_baremetal
+  tasks:
     - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=TRIPLEO_HK_RESTORED delay=10
       when: wait_for_hostkey is defined
       ignore_errors: yes
