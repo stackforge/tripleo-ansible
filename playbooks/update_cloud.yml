@@ -356,6 +356,32 @@
       when: wait_for_hostkey is not defined
       ignore_errors: yes
     - pause: seconds=30 prompt="Allowing controller node to settle."
+# Start: Apply Heat Template
+# TODO: Move all rebuilds to be before this point to lessen interruption.
+- hosts: controller-bootstrap
+  name: "Allow Bootstrap node to settle, disable os-collect-config"
+  gather_facts: no
+  max_fail_percentage: 0
+  tasks:
+    - pause: prompt="Pausing for 60 seconds to allow Bootstrap controller node to settle"
+      when: execute_update_command is defined
+    - name: "Stopping os-collect-config to prevent signaling"
+      service: name=os-collect-config state=stopped
+      when: execute_update_command is defined
+# TODO: Turn this into a module?
+- hosts: localhost
+  name: "Execute Heat Command if defined"
+  gather_facts: no
+  max_fail_percentage: 0
+  tasks:
+    - name: "Execute Heat Command if defined"
+      command: {{ execute_update_command }}
+      when: execute_update_command is defined
+      delegate_to: localhost
+    - name: "Pausing for 120 seconds to allow nodes to begin acting upon template update."
+      pause: prompt="Pausing for 120 seconds to allow nodes to begin acting upon template update." seconds=120
+# Stop: Apply Heat Teplate - OCC remains disabled on bootstrap node until
+# other controller nodes are done.
 - hosts: controller
   name: Stop and setup for controller refresh
   max_fail_percentage: 0

@@ -142,6 +142,36 @@ behavior can be disabled by passing setting the an environment variable of
 
 For more information about Ansible, please refer to the documentation at http://docs.ansible.com/
 
+Applying a heat stack-update
+----------------------------
+
+In order to perform a stack-update in-line, and reduce the possibilities of
+race conditions occurring, an inline command can be executed once the bootstrap
+node is online.  This can leveraged via a variable, execute_update_command,
+which when defined will be executed upon localhost.
+
+This variable can be defined:
+
+ * On ansible-playbook command line:
+
+   * -e execute_update_command='heat stack-update ...'
+
+ * In plugins/inventory/group_vars/all:
+
+   * execute_update_command: heat stack-update ...
+
+Note:
+
+If software deployment signaling is explictly disabled via an argument, or
+base template as defined in the update template, and any additional nodes
+are added, then it is absolutely necessary for an administrative user to
+log into the node and execute `os-collect-config --force --one` repeatedly
+until it completes successfully.
+
+Additionally, any nodes added in a heat stack-update WILL NOT be part of the
+inventory that Ansible is acting upon at this time.  Inventory is only retrieved
+from heat when Ansible is invoked, and not during the execution of a playbook.
+
 Failure Handling
 ----------------
 
