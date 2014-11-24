@@ -1,6 +1,7 @@
 ---
 - name: "Test Connectivity to all hosts"
   hosts: all
+  gather_facts: no
   serial: 1
   tasks:
     ping:
