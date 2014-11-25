@@ -102,6 +102,7 @@ helion_overcloud_controller_services:
   - nova-novncproxy
   - nova-scheduler
   - ceilometer-api
+  - ceilometer-collector
   - snmpd
   - rsync
   - stunnel
