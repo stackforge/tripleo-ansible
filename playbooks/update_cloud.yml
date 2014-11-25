@@ -270,6 +270,7 @@
   max_fail_percentage: 0
   sudo: yes
   tasks:
+    - include: activate_cinder_volumes.yml
     - include: mysql_init_fix.yml
     - include: rabbitmq_occ_disable.yml
     - include: refresh_config.yml
@@ -349,6 +350,7 @@
   max_fail_percentage: 0
   sudo: yes
   tasks:
+    - include: activate_cinder_volumes.yml
     # This action of stopping prior to starting is to ensure that should
     # MySQL started upon boot, then it would hopefully pickup new config
     # that os-collect-config and os-apply-config would have put in place.
