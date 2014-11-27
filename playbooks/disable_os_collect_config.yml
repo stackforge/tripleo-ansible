@@ -20,6 +20,9 @@
 - name: "Disable os-collect-config service"
   sudo: yes
   service: name=os-collect-config enabled=no state=stopped
+- name: "Remove file that allows os-collect-config start via upstart"
+  shell: os-svc-enable-upstart os-collect-config disable
+  sudo: yes
 - name: "Ensure os-collect-config local-data folder is present"
   sudo: yes
   file: path=/var/lib/os-collect-config/local-data state=directory owner=root group=root mode=0700
