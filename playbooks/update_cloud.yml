@@ -40,6 +40,7 @@
     - service: name={{ item }} enabled=no state=stopped
       with_items: undercloud_services
       when: helion is not defined and instance_status == "ACTIVE" and item in existing_services
+    - include: disable_os_collect_config.yml
 - hosts: nova-compute
   name: Disable Overcloud Compute
   tags: shutdown-cloud
@@ -47,6 +48,7 @@
   gather_facts: no
   max_fail_percentage: 0
   tasks:
+    - include: disable_os_collect_config.yml
     - fail: "FAILURE: Cannot perform an online upgrade on nodes that are not in ACTIVE state"
       when: instance_status != "ACTIVE" and online_upgrade is defined
     - include: stop_vms.yml
@@ -70,6 +72,7 @@
   gather_facts: no
   max_fail_percentage: 0
   tasks:
+    - include: disable_os_collect_config.yml
     - fail: "Fail if online_upgrade is defined - online upgrades are not supported on swift instances."
       when: online_upgrade is defined
     - service_facts:
@@ -87,6 +90,7 @@
   gather_facts: no
   max_fail_percentage: 0
   tasks:
+    - include: disable_os_collect_config.yml
     - fail: "Fail if online_upgrade is defined - online upgrades are not supported on vsa instances."
       when: online_upgrade is defined
     - include: stop_vms.yml
@@ -174,6 +178,7 @@
     - name: "Waiting for rabbitmq-server to stop"
       wait_for: port=5672 state=stopped timeout=60 delay=10
       when: instance_status == "ACTIVE"
+    - include: disable_os_collect_config.yml
 - hosts: controller-bootstrap
   name: Stop MySQL/RabbitMQ on Overcloud Controller Bootstrap node
   tags: shutdown-cloud
@@ -194,6 +199,7 @@
     - name: "Waiting for rabbitmq-server to stop"
       wait_for: port=5672 state=stopped timeout=60 delay=10
       when: instance_status == "ACTIVE"
+    - include: disable_os_collect_config.yml
 - hosts: all:!unknown
   tags: shutdown-cloud
   gather_facts: no
@@ -227,7 +233,6 @@
   sudo: yes
   max_fail_percentage: 0
   tasks:
-    - include: disable_os_collect_config.yml
     - service_facts:
       when: instance_status == "ACTIVE"
     - include: step_reset_mnt_state_permissions.yml
@@ -240,13 +245,13 @@
     # https://bugs.launchpad.net/ironic/+bug/1382698
     - include: step_undercloud_ironic_release_reservations.yml
     - include: step_run_occ.yml
-    - service: name=os-collect-config state=started
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_undercloud_services
       when: helion is defined and item in existing_services
     - service: name={{ item }} enabled=yes state=started
       with_items: undercloud_services
       when: helion is not defined and item in existing_services
+    - include: enable_start_os_collect_config.yml
 - hosts: controller-bootstrap
   name: Rebuild and Refresh controller-bootstrap
   gather_facts: no
@@ -284,14 +289,8 @@
     - include: mysql_init_fix.yml
     - include: rabbitmq_occ_disable.yml
     - include: refresh_config.yml
-    - name: Stop os-collect-config to avoid collission
-      service: name=os-collect-config state=stopped
-    - name: "Take a 30 second pause in case os-collect-config had intiiated a process"
-      pause: seconds=30 prompt="Pausing for 30 seconds to give time for any running os-collect-config sub processes to exit"
     - name: "Work around apache2 starting up at boot w/o config..."
       service: name=apache2 enabled=no state=stopped
-    - name: "Remove os-collect-config disable sentinel file"
-      file: path=/mnt/state/disable-os-collect-config state=absent
     - name: "Run os-collect-config"
       command: os-collect-config --force --one
     - include: step_reset_mnt_state_permissions.yml
@@ -319,12 +318,9 @@
       when: single_controller is not defined
     - include: step_create_databases.yml
     - include: start_rabbitmq.yml
-    - name: "Run os-collect-config"
-      command: os-collect-config --force --one
+    - include: step_run_occ.yml
     - name: Wait for Rabbit to listen on its usual port
       wait_for: port=5672 state=started timeout=90 delay=10
-    - name: Restart os-collect-config
-      service: name=os-collect-config state=started
     - include: mysql_access_fix.yml
 - hosts: controller
   name: Rebuild and Refresh Controller
@@ -368,14 +364,8 @@
     - include: rabbitmq_occ_disable.yml
     - include: step_reset_mnt_state_permissions.yml
     - include: refresh_config.yml
-    - name: Stop os-collect-config to avoid collission
-      service: name=os-collect-config state=stopped
-    - name: "Take a 30 second pause in case os-collect-config had intiiated a process"
-      pause: seconds=30 prompt="Pausing for 30 seconds to give time for any running os-collect-config sub processes to exit"
     - name: "Work around apache2 starting up at boot w/o config..."
       service: name=apache2 enabled=no state=stopped
-    - name: "Remove os-collect-config disable sentinel file"
-      file: path=/mnt/state/disable-os-collect-config state=absent
     # Directly call os-apply-config to write out configuration files in case
     # os-collect-config has failed to reach that step.
     - include: step_os-apply-config.yml
@@ -403,8 +393,6 @@
     - include: start_rabbitmq.yml
     - include: rabbitmq_rejoin_cluster.yml
     - include: step_run_occ.yml
-    - name: "Restart os-collect-config"
-      service: name=os-collect-config state=started
     - name: Wait for Rabbit to listen on its usual port
       wait_for: port=5672 state=started timeout=120 delay=10
 - hosts: controller:controller-bootstrap
@@ -422,18 +410,17 @@
   sudo: yes
   max_fail_percentage: 0
   tasks:
-    - service: name=os-collect-config state=started
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_overcloud_bootstrap_controller_service
       when: helion is defined and item in existing_services
+    - include: enable_start_os_collect_config.yml
 - hosts: controller
   name: Enable Overcloud Controller
   sudo: yes
   max_fail_percentage: 0
   tasks:
-    - service: name=os-collect-config state=started
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started
@@ -442,6 +429,7 @@
     - service: name={{ item }} enabled=yes state=started
       with_items: overcloud_controller_services
       when: helion is not defined and item in existing_services
+    - include: enable_start_os_collect_config.yml
 - hosts: swift-storage
   name: Rebuild and Refresh swift-storage
   gather_facts: no
@@ -464,9 +452,7 @@
   sudo: yes
   max_fail_percentage: 0
   tasks:
-    - include: disable_os_collect_config.yml
     - include: step_run_occ.yml
-    - service: name=os-collect-config state=started
       sudo: yes
     - service_facts:
       when: instance_status == "ACTIVE"
@@ -478,6 +464,7 @@
       with_items: overcloud_swift_services
       sudo: yes
       when: helion is not defined and item in existing_services
+    - include: enable_start_os_collect_config.yml
 - hosts: vsa
   name: Rebuild and Refresh vsa
   gather_facts: no
@@ -500,14 +487,13 @@
   sudo: yes
   max_fail_percentage: 0
   tasks:
-    - include: disable_os_collect_config.yml
     - include: step_run_occ.yml
-    - service: name=os-collect-config state=started
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_overcloud_vsa_services
       when: helion is defined and item in existing_services
+    - include: enable_start_os_collect_config.yml
 - hosts: nova-compute
   name: "Download image from glance if online upgrade is being invoked"
   gather_facts: no
@@ -547,24 +533,21 @@
   max_fail_percentage: 0
   tasks:
     - include: step_os-apply-config.yml
-    - pause: seconds=60 prompt="Giving the compute node sixty seconds to complete existing processes"
+    - pause: seconds=45 prompt="Giving the compute node sixty seconds to complete existing processes"
       when: online_upgrade is not defined
     # Write out config files in as we might be getting in while the
     # system is starting up.
     - include: step_cloud_init.yml
       when: online_upgrade is defined
-    # Note: The wait_for lines below may not, likely are not valid for
-    # online_upgrade mode of compute nodes.
+    - name: Wait for cloud-init to Complete
+      wait_for: path=/run/cloud-init/result.json state=present
     - name: Wait for ovs-vswitchd to be started
-      wait_for: path=/var/run/openvswitch/ovs-vswitchd.pid state=present timeout=60
+      wait_for: path=/var/run/openvswitch/ovs-vswitchd.pid state=present
       when: online_upgrade is not defined
     - name: Wait for ovs-vswitchd to config during start-up
       pause: minutes=1
       when: online_upgrade is not defined
-    - include: disable_os_collect_config.yml
-      when: online_upgrade is not defined
     - include: step_run_occ.yml
-    - service: name=os-collect-config state=started
     - pause: seconds=30 msg="Pausing for 30 seconds to allow services to complete start-up."
     - service_facts:
       when: instance_status == "ACTIVE"
@@ -578,4 +561,5 @@
     # nova-compute should already be started, however this step explicitly sets
     # the service to start upon boot.
     - service: name=nova-compute state=started enabled=yes
+    - include: enable_start_os_collect_config.yml
 - include: step_post_hook.yml
