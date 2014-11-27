@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- name: Remove os-collect-config disable sentinel file
-  file: path=/mnt/state/disable-os-collect-config state=absent
+- name: "Create file that allows os-collect-config start via upstart"
+  shell: os-svc-enable-upstart os-collect-config enable
   sudo: yes
-- name: "Execute os-collect-config"
-  command: os-collect-config --force --one
+- name: "Enable os-collect-config via upstart and start the service"
+  service: name=os-collect-config state=started
+  sudo: yes
