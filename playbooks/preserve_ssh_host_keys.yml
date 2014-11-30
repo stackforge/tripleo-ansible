@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
+- name: "Removing any pre-existing host key backup directory"
+  sudo: yes
+  file: path=/mnt/state/_ssh_host_keys state=absent
 - name: "Create ssh host key backup directory"
   sudo: yes
   file:
