@@ -59,12 +59,9 @@
       with_items: overcloud_compute_services
       when: helion is not defined and instance_status == "ACTIVE" and item in existing_services
     - service: name=nova-compute state=stopped enabled=no
-    # After shutdown of neutron services, neutron-ns-metadata-proxy is still present
-    # This services logs to the ephemeral partition, so un-mounting is not possible
-    # No upstart scripts for this service, so needs to be killed.
-    - name: Kill neutron metadata proxy service
-      command: pkill -9 -f neutron-ns-metadata-proxy
-      ignore_errors: yes
+      when: instance_status == "ACTIVE"
+    - include: step_stop_ns_metadata_proxy.yml
+      when: instance_status == "ACTIVE"
 - hosts: swift-storage
   name: swift-storage
   tags: shutdown-cloud
@@ -117,6 +114,8 @@
       when: helion is not defined and instance_status == "ACTIVE" and item in existing_services
     - include: stop_tgt.yml
       when: instance_status == "ACTIVE"
+    - include: step_stop_ns_metadata_proxy.yml
+      when: instance_status == "ACTIVE"
 - hosts: controller-bootstrap
   name: Disable Overcloud Controller Bootstrap node
   tags: shutdown-cloud
@@ -132,6 +131,8 @@
       with_items: helion_overcloud_bootstrap_controller_services
       when: helion is defined and instance_status == "ACTIVE" and item in existing_services
     - include: stop_tgt.yml
+      when: instance_status == "ACTIVE"
+    - include: step_stop_ns_metadata_proxy.yml
       when: instance_status == "ACTIVE"
 # Critically, we need to select a single node of the galera cluster to
 # be the 'last'. So controller-bootstrap fits that bill for now. We will have
