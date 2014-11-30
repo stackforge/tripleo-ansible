@@ -235,8 +235,7 @@
     # Fix Ironic Reservations due to bug:
     # https://bugs.launchpad.net/ironic/+bug/1382698
     - include: step_undercloud_ironic_release_reservations.yml
-    - name: "Run os-collect-config"
-      command: os-collect-config --force --one
+    - include: step_run_occ.yml
     - service: name=os-collect-config state=started
     - service: name={{ item }} enabled=yes state=started
       with_items: helion_undercloud_services
@@ -392,8 +391,7 @@
   tasks:
     - include: start_rabbitmq.yml
     - include: rabbitmq_rejoin_cluster.yml
-    - name: Run os-collect-config with --force option
-      command: os-collect-config --force --one
+    - include: step_run_occ.yml
     - name: "Restart os-collect-config"
       service: name=os-collect-config state=started
     - name: Wait for Rabbit to listen on its usual port
@@ -456,9 +454,7 @@
   max_fail_percentage: 0
   tasks:
     - include: disable_os_collect_config.yml
-    - name: "Run os-collect-config"
-      sudo: yes
-      command: os-collect-config --force --one
+    - include: step_run_occ.yml
     - service: name=os-collect-config state=started
       sudo: yes
     - service_facts:
@@ -494,9 +490,7 @@
   max_fail_percentage: 0
   tasks:
     - include: disable_os_collect_config.yml
-    - name: "Run os-collect-config"
-      sudo: yes
-      command: os-collect-config --force --one
+    - include: step_run_occ.yml
     - service: name=os-collect-config state=started
     - service_facts:
       when: instance_status == "ACTIVE"
@@ -541,16 +535,26 @@
   sudo: yes
   max_fail_percentage: 0
   tasks:
-    - include: disable_os_collect_config.yml
+    - include: step_os-apply-config.yml
+    - pause: seconds=60 prompt="Giving the compute node sixty seconds to complete existing processes"
       when: online_upgrade is not defined
+    # Write out config files in as we might be getting in while the
+    # system is starting up.
     - include: step_cloud_init.yml
       when: online_upgrade is defined
-    - name: "Run os-collect-config"
-      command: os-collect-config --force --one
-    - name: "Run os-collect-config as a single attempt seems not to always succeed."
-      command: os-collect-config --force --one
+    # Note: The wait_for lines below may not, likely are not valid for
+    # online_upgrade mode of compute nodes.
+    - name: Wait for ovs-vswitchd to be started
+      wait_for: path=/var/run/openvswitch/ovs-vswitchd.pid state=present timeout=60
+      when: online_upgrade is not defined
+    - name: Wait for ovs-vswitchd to config during start-up
+      pause: minutes=1
+      when: online_upgrade is not defined
+    - include: disable_os_collect_config.yml
+      when: online_upgrade is not defined
+    - include: step_run_occ.yml
     - service: name=os-collect-config state=started
-    - pause: seconds=30 msg="Pausing for 30 seconds to allow os-collect-config to get things started."
+    - pause: seconds=30 msg="Pausing for 30 seconds to allow services to complete start-up."
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=yes state=started
@@ -560,5 +564,7 @@
       with_items: overcloud_compute_services
       when: helion is not defined and item in existing_services
     - pause: seconds=60 prompt="Giving Open vSwitch time to reconnect"
+    # nova-compute should already be started, however this step explicitly sets
+    # the service to start upon boot.
     - service: name=nova-compute state=started enabled=yes
 - include: step_post_hook.yml
