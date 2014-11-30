@@ -15,6 +15,7 @@
 ---
 - name: "Execute LOCAL command on this node"
   hosts: localhost
+  gather_facts: no
   sudo: yes
   max_fail_percentage: 0
   tasks:
