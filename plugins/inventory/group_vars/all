@@ -29,6 +29,9 @@ ssh_timeout: 900
 # Attempt online upgrade of compute nodes
 # online_upgrade: True
 default_update_file_location: /tmp/update_image.qcow2
+hypervisor_daemons:
+  - libvirt-bin
+  - libvirtd
 overcloud_controller_services:
   - haproxy
   - apache2
@@ -148,14 +151,14 @@ helion_overcloud_bootstrap_controller_services:
 overcloud_compute_services:
   - neutron-openvswitch-agent
   - neutron-metadata-agent
-  - libvirt-bin
+  - "{{ hypervisor_daemons }}"
   - snmpd
 helion_overcloud_compute_services:
   - beaver
   - neutron-openvswitch-agent
   - neutron-metadata-agent
   - neutron-l3-agent
-  - libvirt-bin
+  - "{{ hypervisor_daemons }}"
   - open-iscsi
 # This overcloud swift list is for upstream openstack
 overcloud_swift_services:
