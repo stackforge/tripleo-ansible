@@ -482,10 +482,13 @@ stop.
 
         virsh list
 
-    * If `virsh list` fails, you may need to restart libvirt-bin. Do
+    * If `virsh list` fails, you may need to restart libvirt-bin or
+      libvirtd depending on which process you are running. Do
       so by running::
 
         service libvirt-bin restart
+        or
+        service libvirtd restart
 
   * Solution:
 

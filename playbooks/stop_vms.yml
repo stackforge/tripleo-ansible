@@ -12,10 +12,13 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-- name: Ensure libvirt-bin is running
+- service_facts:
+  when: instance_status == "ACTIVE"
+- name: Ensure libvirt daemon is running
   sudo: yes
-  service: name=libvirt-bin state=started enabled=yes
-  when: use_nova_powercontrol is not defined
+  service: name={{ item }} state=started enabled=yes
+  when: use_nova_powercontrol is not defined and item in existing_services
+  with_items: hypervisor_daemons
 - name: Collect list of VMs
   sudo: yes
   virt: command=list_vms
