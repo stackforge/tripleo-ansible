@@ -1,0 +1,219 @@
+#!/usr/bin/env python
+
+# This code is part of Ansible, but is an independent component.  This
+# particular file snippet, and this file snippet only, is BSD
+# licensed.  Modules you write using this snippet, which is embedded
+# dynamically by Ansible still belong to the author of the module, and
+# may assign their own license to the complete work.
+#
+# Copyright (c) 2014 Hewlett-Packard Development Company, L.P.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#    * Redistributions of source code must retain the above copyright
+#      notice, this list of conditions and the following disclaimer.
+#    * Redistributions in binary form must reproduce the above
+#      copyright notice, this list of conditions and the following
+#      disclaimer in the documentation and/or other materials provided
+#      with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+# COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
+import os
+
+try:
+    from novaclient.v1_1 import client as nova_client
+    from novaclient import exceptions
+    import time
+except ImportError:
+    print("failed=True msg='novaclient is required for this module'")
+
+DOCUMENTATION = '''
+---
+module: check_nova_for_running_vms
+short_description: Checks for running VMs on a supplied hostname.
+description:
+   - Queries Nova based on a hostname and returns a list of running instances.
+options:
+   login_username:
+     description:
+        - login username to authenticate to keystone
+     required: true
+     default: admin
+   login_password:
+     description:
+        - Password of login user
+     required: true
+     default: 'yes'
+   login_tenant_name:
+     description:
+        - The tenant name of the login user
+     required: true
+     default: 'yes'
+   auth_url:
+     description:
+        - The keystone url for authentication
+     required: false
+     default: 'http://127.0.0.1:35357/v2.0/'
+   region_name:
+     description:
+        - Name of the region
+     required: false
+     default: None
+   compute_fqdn:
+     description:
+        - The hostname of the compute node to check VM state on.
+     required: true
+     default: None
+requirements: ["novaclient"]
+'''
+
+EXAMPLES = '''
+- check_nova_for_running_vms:
+       login_username: admin
+       login_password: admin
+       login_tenant_name: admin
+       compute_fqdn: "overcloud-novacompute1-hou6ag4xs3tz.novalocal"
+  register: running_virtual_machines
+- fail: msg="Running Virtual Machines Found"
+  when: running_virtual_machines.running_count > 0
+'''
+
+
+# The following two openstack_ are copy pasted from an upcoming
+# core module "lib/ansible/module_utils/openstack.py" Once that's landed,
+# these should be replaced with a line at the bottom of the file:
+# from ansible.module_utils.openstack import *
+def openstack_argument_spec():
+    # Consume standard OpenStack environment variables.
+    # This is mainly only useful for ad-hoc command line operation as
+    # in playbooks one would assume variables would be used appropriately
+    OS_AUTH_URL = os.environ.get('OS_AUTH_URL', 'http://127.0.0.1:35357/v2.0/')
+    OS_PASSWORD = os.environ.get('OS_PASSWORD', None)
+    OS_REGION_NAME = os.environ.get('OS_REGION_NAME', None)
+    OS_USERNAME = os.environ.get('OS_USERNAME', 'admin')
+    OS_TENANT_NAME = os.environ.get('OS_TENANT_NAME', OS_USERNAME)
+
+    spec = dict(
+        login_username=dict(default=OS_USERNAME),
+        auth_url=dict(default=OS_AUTH_URL),
+        region_name=dict(default=OS_REGION_NAME),
+        availability_zone=dict(default=None),
+    )
+    if OS_PASSWORD:
+        spec['login_password'] = dict(default=OS_PASSWORD)
+    else:
+        spec['login_password'] = dict(required=True)
+    if OS_TENANT_NAME:
+        spec['login_tenant_name'] = dict(default=OS_TENANT_NAME)
+    else:
+        spec['login_tenant_name'] = dict(required=True)
+    return spec
+
+
+def _get_server(nova, instance_id):
+    try:
+        return nova.servers.get(instance_id)
+    except Exception, e:
+        module.fail_json(
+            msg="Error accessing instance %s: %s" % (instance_id, e.message)
+        )
+
+
+def _check_if_running(nova, instance_id):
+        server = None
+        server = _get_server(nova, instance_id)
+        if server.status == "ACTIVE":
+            return (
+                True,
+                {'state': 'ACTIVE', 'id': server.id, 'name': server.name}
+            )
+        if server.status == "PAUSED":
+            return (
+                True,
+                {'state': 'PAUSED', 'id': server.id, 'name': server.name}
+            )
+        return (False, None)
+
+
+def _compute_running(module, nova, servers):
+    """
+    Utilizes a supplied list of servers via the hypervisors search,
+    calls a helper to determine if the instance is running, and
+    then exits with JSON including a list of running instances.
+    """
+    results = []
+    for server in servers:
+        (running, result) = _check_if_running(nova, server.id)
+        if running:
+            results.append(result)
+    module.exit_json(
+        changed=True,
+        running_count=len(results),
+        running_list=results
+    )
+
+
+def _check_nova_for_running_vms(module, nova):
+    if module.params['compute_fqdn'] is None:
+        module.fail_json(
+            msg="Variable compute_fqdn is required"
+        )
+    else:
+        try:
+            servers = nova.hypervisors.search(
+                module.params['compute_fqdn'],
+                servers=True
+            )
+        except:
+            module.fail_json(
+                msg="Unable to find: %s" % module.params['compute_fqdn']
+            )
+
+        _compute_running(module, nova, servers)
+
+
+def main():
+    argument_spec = openstack_argument_spec()
+    argument_spec.update(dict(
+        compute_fqdn=dict(required=True)
+    ))
+    module = AnsibleModule(argument_spec=argument_spec)
+
+    nova = nova_client.Client(module.params['login_username'],
+                              module.params['login_password'],
+                              module.params['login_tenant_name'],
+                              module.params['auth_url'],
+                              region_name=module.params['region_name'],
+                              service_type='compute')
+    try:
+        nova.authenticate()
+    except exceptions.Unauthorized, e:
+        module.fail_json(
+            msg="Invalid OpenStack Nova credentials.: %s" % e.message
+        )
+    except exceptions.AuthorizationFailure, e:
+        module.fail_json(
+            msg="Unable to authorize user: %s" % e.message
+        )
+
+    _check_nova_for_running_vms(module, nova)
+
+
+# this is magic, see lib/ansible/module_common.py
+from ansible.module_utils.basic import *
+main()

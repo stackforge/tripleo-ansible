@@ -49,6 +49,14 @@
       when: instance_status != "ACTIVE" and online_upgrade is defined
     - include: stop_vms.yml
       when: instance_status == "ACTIVE" and online_upgrade is not defined
+- hosts: nova-compute
+  name: "Continue Disable Overcloud Compute"
+  sudo: yes
+  gather_facts: yes
+  max_fail_percentage: 0
+  roles:
+    - { role: check_for_running_vms, when: overcloud_credentials_present is defined and online_upgrade is not defined }
+  tasks:
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
