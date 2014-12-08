@@ -16,5 +16,16 @@
 - name: Remove os-collect-config disable sentinel file
   file: path=/mnt/state/disable-os-collect-config state=absent
   sudo: yes
+- name: "Setting default fact to run os-collect-config"
+  set_fact: test_bypass_os_collect_config="False"
+- name: "Evaluate if os-collect-config needs to be run"
+  command: grep -q -i "Completed phase migration" /var/log/upstart/os-collect-config.log
+  register: test_did_os_collect_config_complete
+  ignore_errors: yes
+  when: online_upgrade is not defined
+- name: "Setting fact to bypass os-collect-config if applicable"
+  set_fact: test_bypass_os_collect_config="True"
+  when: online_upgrade is not defined and test_did_os_collect_config_complete.rc == 0
 - name: "Execute os-collect-config"
   command: os-collect-config --force --one
+  when: test_bypass_os_collect_config != true
