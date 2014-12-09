@@ -60,15 +60,22 @@ def image_list():
 
 
 def name_to_class(name):
-    (stack, bits) = name.split('-', 1)
-    bits = bits.split('-')
+    bits = name.split('-', 1)
+    stack = bits.pop(0)
     new_bits = []
     buildnum = None
+    # this try-catch block is "intuitively obvious". we use it to find
+    # the build number by testing for whether we can str->int on that
+    # part of the name. this keeps "control-mgmt" from being split up in
+    # the method output.
     for bit in bits:
         try:
             buildnum = int(bit)
         except ValueError:
             new_bits.append(bit)
+    if len(new_bits) == 0:
+        # use stack name if all else fails
+        return (stack, buildnum)
     if new_bits == ['compute']:
         return ('nova-compute', buildnum)
     if new_bits == ['control']:
