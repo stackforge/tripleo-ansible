@@ -19,21 +19,21 @@
 - hosts: undercloud
   roles:
     - { role: pre_flight_disk_check, fail_percent: 20, exclude_mounts: [], when: instance_status == "ACTIVE" }
-- hosts: localhost
+- hosts: controller
   vars:
     num_bootstrap_hosts: "{{ groups['controller-bootstrap'] | length }}"
     expected_bootstrap_hosts: 1
     num_controller_hosts: "{{ groups['controller'] | length }}"
     expected_controller_hosts: 2
   tasks:
-    - name: "Verfiy correct number of controller bootstrap nodes"
+    - name: "Verify correct number of controller bootstrap nodes"
       fail: >
         msg="The number of bootstrap nodes is "{{ num_bootstrap_hosts }}" \
              must be exactly "{{ expected_bootstrap_hosts }}"!"
       when: num_bootstrap_hosts | int != expected_bootstrap_hosts
-    - name: "Verfiy correct number of controller non-bootstrap nodes"
+    - name: "Verify correct number of controller non-bootstrap nodes"
       fail: >
-        msg="The number of controller non bootstrap nodes is \
+        msg="The number of controller non-bootstrap nodes is \
              "{{ num_controller_hosts }}" must be exactly \
              "{{ expected_controller_hosts }}"!"
       when: num_controller_hosts | int != expected_controller_hosts
@@ -43,7 +43,7 @@
   gather_facts: yes
   max_fail_percentage: 0
   tasks:
-    - name: "Verfiy controller nodes are ACTIVE"
+    - name: "Verify controller nodes are ACTIVE"
       fail: >
         msg="One of more controller nodes don't have a status of \
              ACTIVE in nova, cannot proceed with update"
