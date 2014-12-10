@@ -32,7 +32,7 @@
   copy: src=files/rabbitmq-server.override dest=/etc/init/ owner=root group=root mode=0644
   sudo: yes
 - name: Start rabbitmq before os-collect-config if previously configured
-  command: service rabbitmq-server start
+  service: name=rabbitmq-server state=started
   sudo: yes
 - name: Wait for Rabbit to listen on its usual port
   wait_for: port=5672 state=started timeout=90 delay=10
