@@ -40,3 +40,17 @@
   when: use_nova_powercontrol is defined
 - name: Pausing for 60 seconds to give VMs time to stop.
   pause: seconds=60
+- name: Collect list of VMs
+  sudo: yes
+  virt: command=list_vms
+  register: virtual_machines
+  when: use_nova_powercontrol is not defined
+- name: Issue graceful shutdowns
+  sudo: yes
+  virt: state=shutdown name={{item}}
+  when: use_nova_powercontrol is not defined
+  with_items: virtual_machines.list_vms
+  register: test_from_second_shutdown_call
+- name: "Fail if virtual machines were still running"
+  fail: msg="If the ansible playbook has failed and exited at this point, virtual machines were still running on the compute node after sixty seconds passed from the shutdown commands having been initiated.  Please retry and/or manually ensure that virtual machines on the nodes to be updated have been shut down."
+  when: use_nova_powercontrol is not defined and test_from_second_shutdown_call.changed == true
