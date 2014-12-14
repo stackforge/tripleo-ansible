@@ -108,8 +108,9 @@ helion_overcloud_controller_services:
   - ceilometer-collector
   - snmpd
   - rsync
-  - stunnel
+  - stunnel4
   - rsyslog
+  - ephemeral-ca
 helion_overcloud_bootstrap_controller_services:
   - cron
   - apache2
@@ -144,9 +145,10 @@ helion_overcloud_bootstrap_controller_services:
   - neutron-metadata-agent
   - neutron-dhcp-agent
   - neutron-openvswitch-agent
-  - stunnel
+  - stunnel4
   - open-iscsi
   - rsyslog
+  - ephemeral-ca
 # This overcloud compute list is for upstream openstack
 overcloud_compute_services:
   - neutron-openvswitch-agent
@@ -160,6 +162,7 @@ helion_overcloud_compute_services:
   - neutron-l3-agent
   - "{{ hypervisor_daemons }}"
   - open-iscsi
+  - stunnel4
 # This overcloud swift list is for upstream openstack
 overcloud_swift_services:
   - swift-account
@@ -196,6 +199,7 @@ helion_overcloud_swift_services:
   - swift-proxy
   - open-iscsi
   - rsyslog
+  - stunnel4
 # This undercloud list is derived from upstream openstack
 undercloud_services:
   - os-collect-config
