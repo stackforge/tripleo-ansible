@@ -501,6 +501,8 @@
   gather_facts: yes
   max_fail_percentage: 0
   tasks:
+    - include: step_preserve_iscsi_initiator.yml
+      when: instance_status == "ACTIVE"
     - include: step_preserve_password_file.yml
       when: instance_status == "ACTIVE"
     - include: step_update_rebuild_node.yml
@@ -523,7 +525,8 @@
   max_fail_percentage: 0
   tasks:
     - include: step_os-apply-config.yml
-    - pause: seconds=45 prompt="Giving the compute node sixty seconds to complete existing processes"
+    - include: step_restore_iscsi_initiator.yml
+    - pause: seconds=45 prompt="Giving the compute node fourty five seconds to complete existing processes"
       when: online_upgrade is not defined
     # Write out config files in as we might be getting in while the
     # system is starting up.
