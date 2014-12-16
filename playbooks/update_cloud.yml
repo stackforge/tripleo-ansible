@@ -347,6 +347,15 @@
   sudo: yes
   tasks:
     - include: activate_cinder_volumes.yml
+    - name: "Inject Firewall rules for for MySQL to start - tcp/4444"
+      sudo: yes
+      command: /sbin/iptables -I INPUT -p tcp --dport 4444 -j ACCEPT
+    - name: "Inject Firewall rules for for MySQL to start - tcp/4567"
+      sudo: yes
+      command: /sbin/iptables -I INPUT -p tcp --dport 4567 -j ACCEPT
+    - name: "Inject Firewall rules for for MySQL to start - tcp/4568"
+      sudo: yes
+      command: /sbin/iptables -I INPUT -p tcp --dport 4568 -j ACCEPT
     # This action of stopping prior to starting is to ensure that should
     # MySQL started upon boot, then it would hopefully pickup new config
     # that os-collect-config and os-apply-config would have put in place.
