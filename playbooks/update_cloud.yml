@@ -368,6 +368,15 @@
       command: /sbin/iptables -I INPUT -p tcp --dport 4568 -j ACCEPT
     - name: "Ensure /var/run/rabbitmq is present"
       file: path=/var/run/rabbitmq state=directory owner=rabbitmq group=rabbitmq mode=0755
+    - name: "Inject Firewall rules for for RabbitMQ to start - tcp/5672"
+      sudo: yes
+      command: /sbin/iptables -I INPUT -p tcp --dport 5672 -j ACCEPT
+    - name: "Inject Firewall rules for for RabbitMQ to start - tcp/61000"
+      sudo: yes
+      command: /sbin/iptables -I INPUT -p tcp --dport 61000 -j ACCEPT
+    - name: "Inject Firewall rules for for RabbitMQ to start - tcp/4369"
+      sudo: yes
+      command: /sbin/iptables -I INPUT -p tcp --dport 4369 -j ACCEPT
     # This action of stopping prior to starting is to ensure that should
     # MySQL started upon boot, then it would hopefully pickup new config
     # that os-collect-config and os-apply-config would have put in place.
