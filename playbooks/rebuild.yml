@@ -18,6 +18,8 @@
     instance_id: "{{ instance_id }}"
     image_id: "{{ rebuild_image_id }}"
     preserve_ephemeral: true
+    wait: "yes"
+    wait_for: 900
   delegate_to: localhost
   when: instance_image_id != rebuild_image_id and force_rebuild is not defined
 - name: "Call nova_rebuild if rebuild is mandated"
@@ -25,5 +27,7 @@
     instance_id: "{{ instance_id }}"
     image_id: "{{ rebuild_image_id }}"
     preserve_ephemeral: true
+    wait: "yes"
+    wait_for: 900
   delegate_to: localhost
   when: force_rebuild is defined
