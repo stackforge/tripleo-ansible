@@ -28,6 +28,8 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import sys
+import traceback
 
 try:
     from novaclient.v1_1 import client as nova_client
@@ -157,6 +159,8 @@ def openstack_find_nova_addresses(addresses, ext_tag, key_name=None):
 
 def _rebuild_server(module, nova):
     server = None
+    last_error = None
+    last_stacktrace = None
     try:
         if module.params.get('instance_id') is None:
             servers = nova.servers.list(True, {'name': module.params['name']})
@@ -188,8 +192,34 @@ def _rebuild_server(module, nova):
         while time.time() < expire:
             try:
                 server = nova.servers.get(server.id)
-            except Exception, e:
-                    module.fail_json( msg = "Error in getting info from instance: %s " % e.message)
+            except Exception, last_error:
+                # This logic attempts to retry a failed status query
+                # once before aborting and returning an error to
+                # Ansible.  This helps prevent momentarilly transient
+                # issues from creating spurious issues.
+                #
+                # Ideally, we would change this logic to something
+                # along the lines of wait_for, although logging
+                # would need to be addressed so issues can be
+                # identified should errors occur.
+                last_error = traceback.format_exc
+                time.sleep(2)
+                try:
+                    server = nova.servers.get(server.id)
+                except Exception, error:
+                    module.fail_json(
+                        msg = ("Error in getting info for instance: %s\n"
+                               "Initial error: %s\n"
+                               "Stack backtrace: %s\n"
+                               "Terminal error: %s\n"
+                               "Terminal stack backtrace: %s") % (
+                            last_stracetrace,
+                            last_error.message,
+                            error.message,
+                            traceback.format_exc
+                        )
+                    )
+
             if server.status == 'ACTIVE':
                 private = openstack_find_nova_addresses(getattr(server, 'addresses'), 'fixed', 'private')
                 public = openstack_find_nova_addresses(getattr(server, 'addresses'), 'floating', 'public')
