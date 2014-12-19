@@ -188,8 +188,13 @@ def _rebuild_server(module, nova):
         while time.time() < expire:
             try:
                 server = nova.servers.get(server.id)
-            except Exception, e:
+            except Exception:
+                time.sleep(2)
+                try:
+                    server = nova.servers.get(server.id)
+                except Exception, e:
                     module.fail_json( msg = "Error in getting info from instance: %s " % e.message)
+
             if server.status == 'ACTIVE':
                 private = openstack_find_nova_addresses(getattr(server, 'addresses'), 'fixed', 'private')
                 public = openstack_find_nova_addresses(getattr(server, 'addresses'), 'floating', 'public')
