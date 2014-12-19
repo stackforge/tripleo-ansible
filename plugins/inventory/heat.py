@@ -81,6 +81,9 @@ def _parse_config():
     if configs.auth_url is None:
         if "OS_AUTH_URL" in os.environ:
             configs.auth_url = os.environ.get('OS_AUTH_URL')
+        else:
+            print('ERROR: auth-url not defined and OS_AUTH_URL environment variable missing, unable to proceed.')
+            sys.exit(1)
     if configs.username is None:
         if "OS_USERNAME" in os.environ:
             configs.username = os.environ.get('OS_USERNAME')
@@ -206,12 +209,20 @@ class HeatInventory(object):
     @property
     def ksclient(self):
         if self._ksclient is None:
-            self._ksclient = keystone_client.Client(
-                auth_url=self.configs.auth_url,
-                username=self.configs.username,
-                password=self.configs.password,
-                project_name=self.configs.project_name)
-            self._ksclient.authenticate()
+            try:
+                self._ksclient = keystone_client.Client(
+                    auth_url=self.configs.auth_url,
+                    username=self.configs.username,
+                    password=self.configs.password,
+                    project_name=self.configs.project_name)
+                self._ksclient.authenticate()
+            except Exception, e:
+                print("Error connecting to Keystone: %s" %
+                    (
+                        e.message
+                    )
+                )
+                sys.exit(1)
         return self._ksclient
 
     @property
@@ -220,9 +231,17 @@ class HeatInventory(object):
             ksclient = self.ksclient
             endpoint = ksclient.service_catalog.url_for(
                 service_type='orchestration', endpoint_type='publicURL')
-            self._hclient = heat_client.Client(
-                endpoint=endpoint,
-                token=ksclient.auth_token)
+            try:
+                self._hclient = heat_client.Client(
+                    endpoint=endpoint,
+                    token=ksclient.auth_token)
+            except Exception, e:
+                print("Error connecting to Heat: %s" %
+                    (
+                        e.message
+                    )
+                )
+                sys.exit(1)
         return self._hclient
 
     @property
@@ -231,12 +250,20 @@ class HeatInventory(object):
             ksclient = self.ksclient
             endpoint = ksclient.service_catalog.url_for(
                 service_type='compute', endpoint_type='publicURL')
-            self._nclient = nova_client.Client(
-                bypass_url=endpoint,
-                username=None,
-                api_key=None,
-                auth_url=self.configs.auth_url,
-                auth_token=ksclient.auth_token)
+            try:
+                self._nclient = nova_client.Client(
+                    bypass_url=endpoint,
+                    username=None,
+                    api_key=None,
+                    auth_url=self.configs.auth_url,
+                    auth_token=ksclient.auth_token)
+            except Exception, e:
+                print("Error connecting to Nova: %s" %
+                    (
+                        e.message
+                    )
+                )
+                sys.exit(1)
         return self._nclient
 
 
