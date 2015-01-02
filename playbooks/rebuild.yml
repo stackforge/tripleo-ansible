@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
+- name: "Setting default fact indicating no rebuild has yet taken place"
+  set_fact: instance_rebuilt=false
 - name: "Call nova_rebuild if instance needs to be updated"
   nova_rebuild:
     instance_id: "{{ instance_id }}"
@@ -22,6 +24,10 @@
     wait_for: 900
   delegate_to: localhost
   when: instance_image_id != rebuild_image_id and force_rebuild is not defined
+  register: test_rebuild_normal
+- name: "Record that instance was rebuilt under normal circumstances"
+  set_fact: instance_rebuilt=true
+  when: test_rebuild_normal.changed == true
 - name: "Call nova_rebuild if rebuild is mandated"
   nova_rebuild:
     instance_id: "{{ instance_id }}"
