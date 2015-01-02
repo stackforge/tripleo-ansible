@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
+- name: "Setting default fact indicating no rebuild has yet taken place"
+  set_fact: instance_rebuilt=false
 - name: "Call nova_rebuild if instance needs to be updated"
   nova_rebuild:
     instance_id: "{{ instance_id }}"
@@ -20,6 +22,10 @@
     preserve_ephemeral: true
   delegate_to: localhost
   when: instance_image_id != rebuild_image_id and force_rebuild is not defined
+  register: test_rebuild_normal
+- name: "Record that instance was rebuilt under normal circumstances"
+  set_fact: instance_rebuilt=true
+  when: test_rebuild_normal.changed == true
 - name: "Call nova_rebuild if rebuild is mandated"
   nova_rebuild:
     instance_id: "{{ instance_id }}"
@@ -27,3 +33,11 @@
     preserve_ephemeral: true
   delegate_to: localhost
   when: force_rebuild is defined
+  register: test_rebuild_forced
+- name: "Record that instance was rebuilt under normal circumstances"
+  set_fact: instance_rebuilt=true
+  when: test_rebuild_forced.changed == true
+- name: "If we did not rebuild, and the image IDs already match, trigger the ephemeral disk to remount."
+  sudo: yes
+  command: /opt/stack/os-config-refresh/pre-configure.d/00-fix-ephemeral-mount
+  when: instance_image_id == rebuild_image_id and force_rebuild is not defined or instance_rebuilt == false
