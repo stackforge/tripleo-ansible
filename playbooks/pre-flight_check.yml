@@ -55,8 +55,8 @@
     - name: "Ensuring MySQL is running - If this fails, the cluster is likely not in a healthy state, and manual checks/recovery will be required."
       service: name=mysql state=started
       when: instance_status == "ACTIVE"
-- hosts: controller-bootstrap:controller
-  name: Check RabbitMQ server status
+- hosts: controller-bootstrap
+  name: Check RabbitMQ Bootstrap Node
   sudo: yes
   gather_facts: yes
   max_fail_percentage: 0
@@ -66,9 +66,28 @@
       shell: rabbitmqctl -n rabbit@$(hostname) status
       when: instance_status == "ACTIVE"
       register: rabbitmq_status
-    - name: "Attempting to start single cluster members, if this fails it may be necessary to restart the nodes manually as root on each node using the command: rabbitmq-server -detached"
+      ignore_errors: yes
+    - name: "Attempting to start RabbitMQ - Bootstrap Node"
       service: name=rabbitmq-server status=started
       when: rabbitmq_status.rc != 0
+    - name: "Checking RabbitMQ Cluster Status - Bootstrap Node"
+      shell: rabbitmqctl -n rabbit@$(hostname) status
+- hosts: controller
+  name: "Check RabbitMQ server status"
+  sudo: yes
+  gather_facts: yes
+  max_fail_percentage: 0
+  tasks:
+    - name: "Execute RabbitMQ status Check to verify RabbitMQ is running."
+      shell: rabbitmqctl -n rabbit@$(hostname) status
+      when: instance_status == "ACTIVE"
+      register: rabbitmq_status
+      ignore_errors: yes
+    - name: "Attempting to start RabbitMQ"
+      service: name=rabbitmq-server status=started
+      when: rabbitmq_status.rc != 0
+    - name: "Checking RabbitMQ Cluster Status"
+      shell: rabbitmqctl -n rabbit@$(hostname) status
 - hosts: controller-bootstrap:controller
   name: Check controller MySQL Sync status
   gather_facts: no
