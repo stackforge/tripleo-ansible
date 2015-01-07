@@ -66,7 +66,7 @@ down.
 
 Running the updates
 -------------------
-    
+
 You will want to set your environment variables to the appropriate
 values for the following: OS_AUTH_URL, OS_USERNAME, OS_PASSWORD, and
 OS_TENANT_NAME
@@ -82,30 +82,75 @@ set them to be passed into ansible as arguments.
 
     glance image-list
 
+Upon execution, you will output along these lines:
+
+    +--------------------------------------+---------------------------+-------------+------------------+------------+--------+
+    | ID                                   | Name                      | Disk Format | Container Format | Size       | Status |
+    +--------------------------------------+---------------------------+-------------+------------------+------------+--------+
+    | 4ba4c941-2065-4925-8ddc-328d813051c3 | bm-deploy-kernel          | aki         | aki              | 3194080    | active |
+    | b0379d39-b73e-459e-a22d-a79645b83995 | bm-deploy-ramdisk         | ari         | ari              | 24962351   | active |
+    | b89342a9-94f7-4e19-a179-6b0d67a857a1 | overcloud-compute         | qcow2       | bare             | 706412544  | active |
+    | f25cc0d7-ff6f-4beb-9456-e24b06f5a2e4 | overcloud-compute-initrd  | ari         | ari              | 10557800   | active |
+    | cbdccc2e-aaf0-4080-88bb-57656f31e747 | overcloud-compute-vmlinuz | aki         | aki              | 3194080    | active |
+    | a5b85458-f355-49e0-bdc9-29824f2429d5 | overcloud-control         | qcow2       | bare             | 1210996736 | active |
+    | 642f4197-5d4e-4e10-b466-188df9ac2915 | overcloud-control-initrd  | ari         | ari              | 11652799   | active |
+    | 9c386c74-66d8-4937-9438-d00c9740670d | overcloud-control-vmlinuz | aki         | aki              | 3194080    | active |
+    | f52e97c6-e91a-4885-94be-97ea324f6c06 | overcloud-swift           | qcow2       | bare             | 440991744  | active |
+    | 1fd49eff-bdbc-4176-b4f5-3779848c5894 | overcloud-swift-initrd    | ari         | ari              | 10557940   | active |
+    | 50aaab4b-8085-470c-9cc9-9fbfb9891071 | overcloud-swift-vmlinuz   | aki         | aki              | 3194080    | active |
+    +--------------------------------------+---------------------------+-------------+------------------+------------+--------+
+
 It may be possible to infer the image IDs using the script
 "populate_image_vars". It will try to determine the latest image for
-each image class and set it as a group variable in inventory.
+each image class and set it as a group variable in inventory.  For
+this to function correctly, the new images in glance must have the
+same names that the previous images had, which match the node type
+name, such as undercloud, swift, compute, control.
 
     scripts/populate_image_vars
 
-After it runs, inspect `plugins/inventory/group_vars` and if the data
-is what you expect, you can omit the image ids from the ansible command
-line below.
-        
-You will now want to utilize the image ID values observed in the previous
-step, and execute the ansible-playbook command with the appropriate values
-subsituted into place.  Current variables for passing the image variables
-in are nova_compute_rebuild_image_id and controller_rebuild_image_id
-which are passed into the chained playbook.
-     
+Upon execution, you will see output that indicates the ID values that
+have been stored for the image variable.  Example output below:
+
+    {
+        "nova-compute": {
+            "buildnum": null,
+            "id": "b89342a9-94f7-4e19-a179-6b0d67a857a1"
+        },
+        "swift-storage": {
+            "buildnum": null,
+            "id": "f52e97c6-e91a-4885-94be-97ea324f6c06"
+        },
+        "controller": {
+            "buildnum": null,
+            "id": "a5b85458-f355-49e0-bdc9-29824f2429d5"
+        },
+    }
+    ... Creating plugins/inventory/group_vars/nova-compute
+    ... Creating plugins/inventory/group_vars/swift-storage
+    ... Creating plugins/inventory/group_vars/controller
+
+After the populate_image_vars script runs, inspect the output,
+example above, and if the data is what you expect, you can omit
+the image ids from the ansible command line below.  Note, the
+undecloud is not shown in this list as this documentation is
+geared for overcloud updates, however when you utilize the update
+for the undercloud, the variable that needs to be set is
+undercloud_rebuild_image_id.
+
+Once you are ready to execute the update, below is an example command
+for updating the overcloud, showing all of the disk image IDs being
+defined on the command line.
+
     ansible-playbook -vvvv -u heat-admin -i plugins/inventory/heat.py -e nova_compute_rebuild_image_id=1ae9fe6e-c0cc-4f62-8e2b-1d382b20fdcb -e controller_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc -e swift_storage_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc -e vsa_rebuild_image_id=2432dd37-a072-463d-ab86-0861bb5f36cc playbooks/update_cloud.yml
 
-If you have set the image ids in group vars:
+If you have set the image ids in group vars or via the
+populate_image_vars script:
 
     ansible-playbook -vvvv -u heat-admin -i plugins/inventory/heat.py playbooks/update_cloud.yml
-     
+
 Below, we break down the above command so you can see what each part does:  
-                 
+
  * -vvvv - Make Ansible very verbose.
  * -u heat-admin - Utilize the heat-admin user to connect to the remote machine.
  * -i plugins/inventory/heat.py - Sets the inventory plugin.
@@ -116,7 +161,7 @@ Below, we break down the above command so you can see what each part does:
  * playbooks/update_cloud.yml is the path and file name to the ansible playbook that will be utilized.
 
 Upon a successful completion, ansible will print a summary report:
-        
+
             PLAY RECAP ******************************************************************** 
             192.0.2.24 : ok=18 changed=9 unreachable=0 failed=0 
             192.0.2.25 : ok=19 changed=9 unreachable=0 failed=0 
