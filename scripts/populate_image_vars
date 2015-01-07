@@ -130,7 +130,7 @@ def main(argv):
         the_vars = keys_to_variables(k, v)
         output_path = os.path.join(args.output_dir, k)
         if os.path.exists(output_path):
-            print('... Editting %s' % output_path)
+            print('... Editing %s' % output_path)
             with open(output_path, 'r') as input_file:
                 existing = yaml.load(input_file.read())
         else:

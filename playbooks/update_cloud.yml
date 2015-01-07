@@ -21,6 +21,7 @@
   max_fail_percentage: 0
   tasks:
     - include: update_local_ssh_config.yml
+- include: step_check_image_vars.yml
 - include: step_pre_hook.yml
 - hosts: undercloud
   name: Disable Undercloud
