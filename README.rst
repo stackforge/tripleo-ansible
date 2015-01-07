@@ -22,24 +22,20 @@ In general this update process works in the following manner:
 Installing Ansible
 ------------------
 
-Please see the `ansible` element in `tripleo-image-elements`
+Ideally Ansible is to be executed from was built with the following
+disk image elements:
 
-The following patches are required for operation:
+ * ansible
+ * tripleo-ansible
+ * restore-ssh-host-keys
+ * disable-os-collect-config
 
- * Add nova metadata for group (openstack/tripleo-heat-templates) -
-   https://review.openstack.org/#/c/113358/2 - This heat template update
-   labels instances such that the ansible tools can group the instances
-   into groups to facilitate the updates.
- * Element to restore ssh keys from
-   /mnt/state (openstack/tripleo-image-elements) -
-   https://review.openstack.org/#/c/114360/ - This includes a new image
-   element, named restore-ssh-host-keys, which is intended to restore host
-   keys preserved by the ansible scripts after a reboot.
+If Ansible is not preloaded, it can be installed via `pip install
+ansible`  Ansible 1.8.1 or later is required.
 
-To make things simpler, you may want to add tripleo-ansible to /opt/stack
-on the seed and/or undercloud. We include elements/tripleo-ansible,
-which can be included in seed and undercloud image builds to allow the
-tripleo-ansible tools to be automatically deployed for use.
+If you have manually installed Ansible, see the section on "Setting
+the OS Environment" for details on ensuring your dependencies are
+met.
 
 Executing Scripts and Playbooks
 -------------------------------
