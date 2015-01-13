@@ -190,7 +190,7 @@
     - name: "Waiting for rabbitmq-server to stop"
       wait_for: port=5672 state=stopped timeout=60 delay=10
       when: instance_status == "ACTIVE"
-- hosts: all
+- hosts: all:!unknown
   tags: shutdown-cloud
   gather_facts: no
   max_fail_percentage: 0
