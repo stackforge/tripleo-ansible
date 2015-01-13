@@ -18,3 +18,4 @@
 - name: Removing mysql starting via sysv
   command: update-rc.d mysql remove
   sudo: yes
+  when: helion is defined
