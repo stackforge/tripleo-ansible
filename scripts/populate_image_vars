@@ -137,6 +137,21 @@ def main(argv):
         ) as out:
             out.write(yaml.dump(existing, default_flow_style=False))
             os.rename(out.name, output_path)
+    # The conditionals and resulting symlink below is to support the
+    # execution of the playbook steps with-in the bootstrap node context
+    # when a user utilizes this script and does not define the controller
+    # disk image id as a global variable on the playbook command line.
+    if os.path.isfile(os.path.join(
+            args.output_dir,
+            'controller'
+        )) and not os.path.islink(os.path.join(
+            args.output_dir,
+            'controller-bootstrap')):
+        os.symlink(
+            'controller',
+            os.path.join(args.output_dir, 'controller-bootstrap')
+        )
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
