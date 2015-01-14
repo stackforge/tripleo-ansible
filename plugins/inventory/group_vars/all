@@ -17,6 +17,7 @@ key_name: ansible_key
 #helion: True
 #force_rebuild: True
 wait_for_hostkey: True
+os_refresh_config_folder: /usr/libexec/os-refresh-config/
 # This overcloud controller list is for upstream openstack
 #single_controller: True
 # This option adjusts logic to enable single controllers to be upgraded

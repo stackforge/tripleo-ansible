@@ -31,3 +31,11 @@
     wait_for: 900
   delegate_to: localhost
   when: force_rebuild is defined
+  register: test_rebuild_forced
+- name: "Record that instance was rebuilt under normal circumstances"
+  set_fact: instance_rebuilt=true
+  when: test_rebuild_forced.changed == true
+- name: "If we did not rebuild, and the image IDs already match, trigger the ephemeral disk to remount."
+  sudo: yes
+  command: "{{os_refresh_config_folder}}/pre-configure.d/00-fix-ephemeral-mount"
+  when: instance_image_id == rebuild_image_id and force_rebuild is not defined or instance_rebuilt == false
