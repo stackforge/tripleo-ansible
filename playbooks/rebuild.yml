@@ -39,5 +39,5 @@
   when: test_rebuild_forced.changed == true
 - name: "If we did not rebuild, and the image IDs already match, trigger the ephemeral disk to remount."
   sudo: yes
-  command: /opt/stack/os-config-refresh/pre-configure.d/00-fix-ephemeral-mount
+  command: "{{os_refresh_config_folder}}/pre-configure.d/00-fix-ephemeral-mount"
   when: instance_image_id == rebuild_image_id and force_rebuild is not defined or instance_rebuilt == false

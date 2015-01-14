@@ -18,12 +18,12 @@
   ignore_errors: yes
   register: rabbit_cluster_test
 - name: Collect names of post-configure.d rabbitmq files
-  shell: ls /opt/stack/os-config-refresh/post-configure.d/|grep '\-rabbitmq$'
+  shell: ls "{{os_refresh_config_folder}}/post-configure.d/"|grep '\-rabbitmq$'
   register: test_rabbitmq_script_list
   when: single_controller is not defined and rabbit_cluster_test.rc == 0
 - name: If node rabbitmq cluster config was present, re-enable os-refresh-config post-configure.d.
   sudo: yes
-  file: mode=0755 path="/opt/stack/os-config-refresh/post-configure.d/{{item}}"
+  file: mode=0755 path="{{os_refresh_config_folder}}/post-configure.d/{{item}}"
   when: single_controller is not defined and rabbit_cluster_test.rc == 0
   with_items: test_rabbitmq_script_list.stdout_lines
 - name: "Removing temporary rabbitmq-server override"
