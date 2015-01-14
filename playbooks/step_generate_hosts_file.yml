@@ -21,4 +21,4 @@
 # to have the same end effect.
 - name: Trigger hosts file generation
   sudo: yes
-  command: /opt/stack/os-config-refresh/configure.d/51-hosts
+  command: "{{os_refresh_config_folder}}/configure.d/51-hosts"
