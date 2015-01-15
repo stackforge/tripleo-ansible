@@ -68,7 +68,7 @@
       register: rabbitmq_status
       ignore_errors: yes
     - name: "Attempting to start RabbitMQ - Bootstrap Node"
-      service: name=rabbitmq-server status=started
+      service: name=rabbitmq-server state=started
       when: rabbitmq_status.rc != 0
     - name: "Checking RabbitMQ Cluster Status - Bootstrap Node"
       shell: rabbitmqctl -n rabbit@$(hostname) status
@@ -84,7 +84,7 @@
       register: rabbitmq_status
       ignore_errors: yes
     - name: "Attempting to start RabbitMQ"
-      service: name=rabbitmq-server status=started
+      service: name=rabbitmq-server state=started
       when: rabbitmq_status.rc != 0
     - name: "Checking RabbitMQ Cluster Status"
       shell: rabbitmqctl -n rabbit@$(hostname) status
