@@ -19,7 +19,7 @@
 - name: "Setting default fact to run os-collect-config"
   set_fact: test_bypass_os_collect_config="False"
 - name: "Evaluate if os-collect-config needs to be run"
-  command: grep -q -i "Completed phase migration" /var/log/upstart/os-collect-config.log
+  command: grep -q -i "Completed phase migration" "{{os_collect_config_log}}"
   register: test_did_os_collect_config_complete
   ignore_errors: yes
   when: online_upgrade is not defined
