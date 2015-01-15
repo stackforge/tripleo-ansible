@@ -282,8 +282,6 @@
     - include: refresh_config.yml
     - name: "Work around apache2 starting up at boot w/o config..."
       service: name=apache2 enabled=no state=stopped
-    - name: "Run os-collect-config"
-      command: os-collect-config --force --one
     - include: step_reset_mnt_state_permissions.yml
     # Directly call os-apply-config to write out configuration files.
     - include: step_os-apply-config.yml
