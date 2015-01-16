@@ -300,6 +300,9 @@
     - name: "Start keepalived if not in single_controller mode"
       service: name=keepalived state=started enabled=yes
       when: single_controller is not defined
+    - name: "Set sysctl net.ipv4.ip_nonlocal_bind for controller-bootstrap group"
+      sysctl: name=net.ipv4.ip_nonlocal_bind value=1 state=present
+      when: single_controller is not defined
     - name: "Start haproxy if not in single_controller mode"
       service: name=haproxy state=started enabled=yes
       when: single_controller is not defined
