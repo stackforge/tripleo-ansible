@@ -29,3 +29,6 @@
 - name: "Execute os-collect-config"
   command: os-collect-config --force --one
   when: test_bypass_os_collect_config != true
+  until: test_occ_results.rc == 0
+  retries: 2
+  delay: 15
