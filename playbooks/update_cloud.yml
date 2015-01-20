@@ -116,8 +116,8 @@
     - service_facts:
       when: instance_status == "ACTIVE"
     - service: name={{ item }} enabled=no state=stopped
-      with_items: helion_overcloud_bootstrap_controller_services
-      when: helion is defined and instance_status == "ACTIVE" and item in existing_services
+      with_items: overcloud_controller_services
+      when: instance_status == "ACTIVE" and item in existing_services
     - include: stop_tgt.yml
       when: instance_status == "ACTIVE"
     - include: step_stop_ns_metadata_proxy.yml
