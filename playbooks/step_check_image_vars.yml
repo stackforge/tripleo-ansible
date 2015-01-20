@@ -28,11 +28,6 @@
   tasks:
     - fail: msg="swift_storage_rebuild_image_id is not defined"
       when: swift_storage_rebuild_image_id is not defined or swift_storage_rebuild_image_id == "" or swift_storage_rebuild_image_id == None
-- hosts: vsa
-  name: Check we have VSA image ID for rebuild
-  tasks:
-    - fail: msg="vsa_rebuild_image_id is not defined"
-      when: vsa_rebuild_image_id is not defined or vsa_rebuild_image_id == "" or vsa_rebuild_image_id == None
 - hosts: nova-compute
   name: Check we have nova compute image ID for rebuild
   tasks:

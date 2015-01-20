@@ -261,5 +261,3 @@ helion_undercloud_services:
   - neutron-openvswitch-agent
   - rabbitmq-server
   - mysql
-helion_overcloud_vsa_services:
-  - vsa
