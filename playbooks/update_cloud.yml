@@ -181,7 +181,9 @@
       wait_for: port=5672 state=stopped timeout=60 delay=10
       when: instance_status == "ACTIVE"
     - include: disable_os_collect_config.yml
-- hosts: all:!unknown
+# On systems which had MySQL started at boot-up via os-collect-config, os-collect-config
+# must be stopped after MySQL is stopped else MySQL will prematurely exit.
+- hosts: undercloud:controller:controller-bootstrap:nova-compute:swift-storage:!unknown
   tags: shutdown-cloud
   gather_facts: no
   max_fail_percentage: 0
@@ -276,7 +278,7 @@
     - name: Wait for ovs-vswitchd to config during start-up
       pause: minutes=1
     - name: Bootstrap the MySQL cluster
-      command: /etc/init.d/mysql bootstrap-pxc
+      shell: /etc/init.d/mysql bootstrap-pxc
       when: single_controller is not defined
     - include: start_mysql.yml
     - name: "Start keepalived if not in single_controller mode"
