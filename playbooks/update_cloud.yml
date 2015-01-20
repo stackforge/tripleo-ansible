@@ -83,23 +83,6 @@
     - service: name={{ item }} enabled=no state=stopped
       with_items: overcloud_swift_services
       when: helion is not defined and instance_status == "ACTIVE" and item in existing_services
-- hosts: vsa
-  name: "Stop services on VSA"
-  tags: shutdown-cloud
-  sudo: yes
-  gather_facts: no
-  max_fail_percentage: 0
-  tasks:
-    - include: disable_os_collect_config.yml
-    - fail: "Fail if online_upgrade is defined - online upgrades are not supported on vsa instances."
-      when: online_upgrade is defined
-    - include: stop_vms.yml
-      when: instance_status == "ACTIVE"
-    - service_facts:
-      when: instance_status == "ACTIVE"
-    - service: name={{ item }} enabled=no state=stopped
-      with_items: helion_overcloud_vsa_services
-      when: helion is defined and instance_status == "ACTIVE" and item in existing_services
 - hosts: controller
   name: Disable Overcloud Controller
   tags: shutdown-cloud
@@ -476,35 +459,6 @@
       with_items: overcloud_swift_services
       sudo: yes
       when: helion is not defined and item in existing_services
-    - include: enable_start_os_collect_config.yml
-- hosts: vsa
-  name: Rebuild and Refresh vsa
-  gather_facts: no
-  max_fail_percentage: 0
-  tasks:
-    - include: preserve_ssh_host_keys.yml
-      when: instance_status == "ACTIVE"
-    - include: step_unmount.yml
-      when: instance_status == "ACTIVE"
-    - { include: rebuild.yml, instance_id: "{{ instance_id }}", rebuild_image_id: "{{ vsa_rebuild_image_id }}", when: instance_status != "REBUILD" }
-    - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=TRIPLEO_HK_RESTORED delay=10
-      when: wait_for_hostkey is defined
-      ignore_errors: yes
-    - local_action: wait_for port=22 timeout="{{ ssh_timeout }}" host="{{ inventory_hostname }}" search_regex=OpenSSH delay=10
-      when: wait_for_hostkey is not defined
-      ignore_errors: yes
-    - include: refresh_config.yml
-- hosts: vsa
-  name: Enable VSA
-  sudo: yes
-  max_fail_percentage: 0
-  tasks:
-    - include: step_run_occ.yml
-    - service_facts:
-      when: instance_status == "ACTIVE"
-    - service: name={{ item }} enabled=yes state=started
-      with_items: helion_overcloud_vsa_services
-      when: helion is defined and item in existing_services
     - include: enable_start_os_collect_config.yml
 - hosts: nova-compute
   name: "Download image from glance if online upgrade is being invoked"

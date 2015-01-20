@@ -46,9 +46,6 @@ while read -r instance; do
     *SwiftStorage*)
         group="swift-storage"
         ;;
-    *Vsa*)
-        group="vsa"
-        ;;
     *controller*)
         group="controller"
         get_bootstrap_node $IP
