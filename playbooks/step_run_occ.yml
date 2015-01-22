@@ -14,7 +14,9 @@
 # limitations under the License.
 ---
 - name: Remove os-collect-config disable sentinel file
-  file: path=/mnt/state/disable-os-collect-config state=absent
+  # NB: Changed from ansible file module to direct command executing
+  # rm as repeatedly the file module failed at this step in local testing.
+  command: rm /mnt/state/disable-os-collect-config
   sudo: yes
 - name: "Setting default fact to run os-collect-config"
   set_fact: test_bypass_os_collect_config="False"
