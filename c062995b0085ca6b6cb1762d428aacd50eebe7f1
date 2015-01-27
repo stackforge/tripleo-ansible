@@ -1,0 +1,8 @@
+Verified+2: Jenkins
+Code-Review+2: Stephanie Miller <stephane@alum.mit.edu>
+Workflow+1: Stephanie Miller <stephane@alum.mit.edu>
+Submitted-by: Jenkins
+Submitted-at: Tue, 27 Jan 2015 21:07:44 +0000
+Reviewed-on: https://review.openstack.org/146532
+Project: stackforge/tripleo-ansible
+Branch: refs/heads/master
