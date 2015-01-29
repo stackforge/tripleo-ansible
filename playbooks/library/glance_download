@@ -148,11 +148,12 @@ def _md5sum_file(path):
             while True:
                 data = file_object.read(65535)
                 if not data:
-                break
-            checksum.update(data)
+                    break
+                checksum.update(data)
         return checksum.hexdigest()
     except Excption, e:
         print("Checksum operaction failed: %s" % e.message)
+
 
 def _glance_download(module, glance, image_id, path):
     image_checksum = _glance_get_image_checksum(glance, image_id)
