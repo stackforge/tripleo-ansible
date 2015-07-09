@@ -199,7 +199,7 @@ def _start_instance(nova, instance_id):
     try:
         server = None
         server = _get_server(nova, instance_id)
-        if server.status != "STOPPED":
+        if server.status != "SHUTOFF":
             if server.status != "SUSPENDED":
                 if server.status != "PAUSED":
                     return False
@@ -249,7 +249,7 @@ def _many_servers(module, nova, servers):
     results = []
     for server in servers:
         result = _determine_task(nova, server.id, module.params['state'])
-        results.append(results)
+        results.append(result)
     module.exit_json(changed=True, output=results)
 
 
@@ -260,8 +260,8 @@ def _all_instances(module, nova):
     """
     results = []
     for server in nova.servers.list():
-        _determine_task(nova, server.id, module.params['state'])
-        results.append(results)
+        result = _determine_task(nova, server.id, module.params['state'])
+        results.append(result)
     module.exit_json(changed=True, output=results)
 
 
